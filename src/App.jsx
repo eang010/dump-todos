@@ -57,13 +57,6 @@ export default function App() {
     return new Set(itemsRef.current.map((item) => item.id))
   }
 
-  function resizeDump() {
-    const el = dumpRef.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }
-
   async function refresh() {
     if (dirtyRef.current) return
     const data = await fetchTodos()
@@ -134,9 +127,6 @@ export default function App() {
       return [...added, ...prev]
     })
     setDraft('')
-    requestAnimationFrame(() => {
-      if (dumpRef.current) dumpRef.current.style.height = ''
-    })
   }
 
   function onDumpSubmit(e) {
@@ -144,11 +134,11 @@ export default function App() {
     dump(draft)
   }
 
-  function onDumpKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      dump(draft)
-    }
+  function onDumpPaste(e) {
+    const text = e.clipboardData.getData('text')
+    if (!text.includes('\n')) return
+    e.preventDefault()
+    dump(text)
   }
 
   function patch(id, partial) {
@@ -362,30 +352,24 @@ export default function App() {
         </main>
       )}
       <footer className="dock">
+        {draft.length > 0 && (
+          <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
+        )}
         <form className="dump" onSubmit={onDumpSubmit}>
-          <textarea
+          <input
             ref={dumpRef}
+            type="text"
+            enterKeyHint="done"
+            autoComplete="off"
             value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value)
-              resizeDump()
-            }}
-            onKeyDown={onDumpKey}
+            onChange={(e) => setDraft(e.target.value)}
+            onPaste={onDumpPaste}
             placeholder="Dump a to-do…"
-            rows={1}
             autoFocus
             disabled={blocked}
             aria-label="Dump a to-do"
           />
-          <button type="submit" disabled={blocked || !draft.trim()}>
-            Add
-          </button>
         </form>
-        <p className="hint">
-          Dump every task here. Drag onto another row to nest it. Drop on a
-          section name to move it. Prefix <kbd>w:</kbd> <kbd>p:</kbd>{' '}
-          <kbd>i:</kbd> to force a bucket.
-        </p>
       </footer>
     </div>
   )
