@@ -44,6 +44,7 @@ export default function App() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [draft, setDraft] = useState('')
+  const [dumpFocused, setDumpFocused] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [dragId, setDragId] = useState(null)
   const [over, setOver] = useState(null)
@@ -352,7 +353,7 @@ export default function App() {
         </main>
       )}
       <footer className="dock">
-        {draft.length > 0 && (
+        {dumpFocused && (
           <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
         )}
         <form className="dump" onSubmit={onDumpSubmit}>
@@ -364,8 +365,9 @@ export default function App() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onPaste={onDumpPaste}
+            onFocus={() => setDumpFocused(true)}
+            onBlur={() => setDumpFocused(false)}
             placeholder="To-do…"
-            autoFocus
             disabled={blocked}
             aria-label="Dump a to-do"
           />
