@@ -1,6 +1,6 @@
 {
-  "name": "Dump",
-  "short_name": "Dump",
+  "name": "To Do List",
+  "short_name": "To Do",
   "description": "Dump to-dos. Auto-sorted. Synced to Notion.",
   "start_url": "/",
   "display": "standalone",
@@ -11,6 +11,17 @@
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any"
     }
   ]
