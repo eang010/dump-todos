@@ -364,7 +364,7 @@ export default function App() {
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             onPaste={onDumpPaste}
-            placeholder="Dump a to-do…"
+            placeholder="To-do…"
             autoFocus
             disabled={blocked}
             aria-label="Dump a to-do"
