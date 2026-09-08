@@ -252,7 +252,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="top">
-        <h1>Dump</h1>
+        <h1>To Do List</h1>
         {status === 'setup' && <Setup />}
         {status === 'error' && (
           <p className="banner">{error || 'Could not reach Notion.'}</p>
