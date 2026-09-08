@@ -6,6 +6,7 @@ import {
   fetchTodos,
   isPersisted,
   persistDiff,
+  enqueueWrite,
 } from './api.js'
 import { parseDump } from './classify.js'
 import { moveItem, zoneFromPoint } from './move.js'
@@ -49,6 +50,12 @@ export default function App() {
   const dumpRef = useRef(null)
   const doneRef = useRef(null)
   const dirtyRef = useRef(false)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+
+  function liveIds() {
+    return new Set(itemsRef.current.map((item) => item.id))
+  }
 
   function resizeDump() {
     const el = dumpRef.current
@@ -107,8 +114,8 @@ export default function App() {
         order: base - parsed.length + i,
         createdAt: now + i,
       }))
-      later(async () => {
-        try {
+      later(() =>
+        enqueueWrite(async () => {
           const saved = []
           for (const item of added) saved.push([item.id, await createTodo(item)])
           const map = new Map(saved.map(([old, next]) => [old, next]))
@@ -122,10 +129,8 @@ export default function App() {
             }),
           )
           dirtyRef.current = false
-        } catch (err) {
-          setError(err.message)
-        }
-      })
+        }).catch((err) => setError(err.message)),
+      )
       return [...added, ...prev]
     })
     setDraft('')
@@ -160,7 +165,7 @@ export default function App() {
         return item
       })
       later(() =>
-        persistDiff(prev, next)
+        enqueueWrite(() => persistDiff(prev, next, liveIds()))
           .then(() => {
             dirtyRef.current = false
           })
@@ -179,8 +184,12 @@ export default function App() {
     setItems((prev) => {
       const gone = prev.filter((item) => item.id === id || item.parentId === id)
       later(() =>
-        Promise.all(
-          gone.filter((item) => isPersisted(item.id)).map((item) => deleteTodo(item.id)),
+        enqueueWrite(() =>
+          Promise.all(
+            gone
+              .filter((item) => isPersisted(item.id))
+              .map((item) => deleteTodo(item.id)),
+          ),
         )
           .then(() => {
             dirtyRef.current = false
@@ -199,7 +208,7 @@ export default function App() {
         prev.filter((item) => !item.parentId && item.done).map((item) => item.id),
       )
       later(() =>
-        clearDoneRemote()
+        enqueueWrite(() => clearDoneRemote())
           .then(() => {
             dirtyRef.current = false
           })
@@ -228,7 +237,7 @@ export default function App() {
     setItems((prev) => {
       const next = moveItem(prev, id, dest)
       later(() =>
-        persistDiff(prev, next)
+        enqueueWrite(() => persistDiff(prev, next, liveIds()))
           .then(() => {
             dirtyRef.current = false
           })

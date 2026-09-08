@@ -73,11 +73,23 @@ function same(a, b) {
   )
 }
 
-export async function persistDiff(prev, next) {
+let writes = Promise.resolve()
+
+export function enqueueWrite(task) {
+  const run = writes.then(task, task)
+  writes = run.then(
+    () => {},
+    () => {},
+  )
+  return run
+}
+
+export async function persistDiff(prev, next, liveIds) {
   const oldBy = new Map(prev.map((item) => [item.id, item]))
+  const live = liveIds ?? new Set(next.map((item) => item.id))
   await Promise.all(
     next
-      .filter((item) => isPersisted(item.id))
+      .filter((item) => isPersisted(item.id) && live.has(item.id))
       .filter((item) => {
         const old = oldBy.get(item.id)
         return !old || !same(old, item)
