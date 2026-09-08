@@ -259,30 +259,6 @@ export default function App() {
         )}
         {status === 'loading' && <p className="hint">Loading…</p>}
         {error && status === 'ready' && <p className="banner">{error}</p>}
-        <form className="dump" onSubmit={onDumpSubmit}>
-          <textarea
-            ref={dumpRef}
-            value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value)
-              resizeDump()
-            }}
-            onKeyDown={onDumpKey}
-            placeholder="Dump a to-do…"
-            rows={1}
-            autoFocus
-            disabled={blocked}
-            aria-label="Dump a to-do"
-          />
-          <button type="submit" disabled={blocked || !draft.trim()}>
-            Add
-          </button>
-        </form>
-        <p className="hint">
-          Dump every task here. Drag onto another row to nest it. Drop on a
-          section name to move it. Prefix <kbd>w:</kbd> <kbd>p:</kbd>{' '}
-          <kbd>i:</kbd> to force a bucket.
-        </p>
       </header>
 
       {status === 'ready' && (
@@ -376,6 +352,32 @@ export default function App() {
         </details>
         </main>
       )}
+      <footer className="dock">
+        <form className="dump" onSubmit={onDumpSubmit}>
+          <textarea
+            ref={dumpRef}
+            value={draft}
+            onChange={(e) => {
+              setDraft(e.target.value)
+              resizeDump()
+            }}
+            onKeyDown={onDumpKey}
+            placeholder="Dump a to-do…"
+            rows={1}
+            autoFocus
+            disabled={blocked}
+            aria-label="Dump a to-do"
+          />
+          <button type="submit" disabled={blocked || !draft.trim()}>
+            Add
+          </button>
+        </form>
+        <p className="hint">
+          Dump every task here. Drag onto another row to nest it. Drop on a
+          section name to move it. Prefix <kbd>w:</kbd> <kbd>p:</kbd>{' '}
+          <kbd>i:</kbd> to force a bucket.
+        </p>
+      </footer>
     </div>
   )
 }
