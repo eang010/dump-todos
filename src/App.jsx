@@ -9,6 +9,7 @@ import {
   enqueueWrite,
 } from './api.js'
 import { parseDump } from './classify.js'
+import { forest } from './forest.js'
 import { moveItem, zoneFromPoint } from './move.js'
 
 const SECTIONS = ['work', 'personal', 'ideas', 'inbox']
@@ -17,22 +18,6 @@ const LABELS = {
   personal: 'Personal',
   ideas: 'Ideas',
   inbox: 'Inbox',
-}
-
-function forest(items, section, done) {
-  const kidsOf = (id) =>
-    items
-      .filter((item) => item.parentId === id)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-  return items
-    .filter(
-      (item) =>
-        !item.parentId &&
-        item.done === done &&
-        (section == null || item.section === section),
-    )
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .map((item) => ({ ...item, children: kidsOf(item.id) }))
 }
 
 function later(fn) {
