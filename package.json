@@ -8,7 +8,7 @@
     "dev:app": "vercel dev",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "node --test src/classify.test.js src/move.test.js",
+    "test": "node --test src/classify.test.js src/move.test.js src/forest.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
