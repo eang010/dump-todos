@@ -9,8 +9,9 @@ import {
   enqueueWrite,
 } from './api.js'
 import { parseDump } from './classify.js'
+import { destFromPoint } from './dnd.js'
 import { forest } from './forest.js'
-import { moveItem, zoneFromPoint } from './move.js'
+import { moveItem } from './move.js'
 
 const SECTIONS = ['work', 'personal', 'ideas', 'inbox']
 const LABELS = {
@@ -37,6 +38,9 @@ export default function App() {
   const doneRef = useRef(null)
   const dirtyRef = useRef(false)
   const itemsRef = useRef(items)
+  const dragIdRef = useRef(null)
+  const overRef = useRef(null)
+  const dragActiveRef = useRef(false)
   itemsRef.current = items
 
   function liveIds() {
@@ -196,19 +200,19 @@ export default function App() {
     })
   }
 
-  function onDragStart(e, id) {
-    e.dataTransfer.setData('text/plain', id)
-    e.dataTransfer.effectAllowed = 'move'
-    setDragId(id)
-  }
-
-  function onDragEnd() {
+  function clearDrag() {
+    dragActiveRef.current = false
+    dragIdRef.current = null
+    overRef.current = null
     setDragId(null)
     setOver(null)
   }
 
-  function applyDrop(dest, id = dragId) {
-    if (!id) return
+  function applyDrop(dest, id = dragIdRef.current) {
+    if (!id || !dest) {
+      clearDrag()
+      return
+    }
     dirtyRef.current = true
     setItems((prev) => {
       const next = moveItem(prev, id, dest)
@@ -221,11 +225,52 @@ export default function App() {
       )
       return next
     })
-    setDragId(null)
+    clearDrag()
+  }
+
+  function onGripPointerDown(e, id) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragActiveRef.current = true
+    dragIdRef.current = id
+    overRef.current = null
+    setDragId(id)
     setOver(null)
   }
 
-  const dnd = { dragId, over, setOver, onDragStart, onDragEnd, applyDrop }
+  function onGripPointerMove(e) {
+    if (!dragActiveRef.current || !dragIdRef.current) return
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId) === false) return
+    const dest = destFromPoint(e.clientX, e.clientY, dragIdRef.current)
+    overRef.current = dest
+    setOver(dest)
+  }
+
+  function onGripPointerUp(e) {
+    if (!dragActiveRef.current) return
+    if (e.currentTarget.hasPointerCapture?.(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    const id = dragIdRef.current
+    const dest =
+      overRef.current ||
+      (id ? destFromPoint(e.clientX, e.clientY, id) : null)
+    applyDrop(dest, id)
+  }
+
+  function onGripPointerCancel() {
+    clearDrag()
+  }
+
+  const dnd = {
+    dragId,
+    over,
+    onGripPointerDown,
+    onGripPointerMove,
+    onGripPointerUp,
+    onGripPointerCancel,
+  }
 
   const open = SECTIONS.map((section) => ({
     section,
@@ -254,40 +299,12 @@ export default function App() {
             className={`bucket${over?.type === 'section' && over.section === section ? ' drop-section' : ''}`}
             data-section={section}
           >
-            <header
-              onDragOver={(e) => {
-                if (!dragId) return
-                e.preventDefault()
-                e.dataTransfer.dropEffect = 'move'
-                setOver({ type: 'section', section })
-              }}
-              onDrop={(e) => {
-                e.preventDefault()
-                applyDrop(
-                  { type: 'section', section },
-                  e.dataTransfer.getData('text/plain') || dragId,
-                )
-              }}
-            >
+            <header data-drop-section={section}>
               <h2>{LABELS[section]}</h2>
               <span>{nodes.length}</span>
             </header>
             {nodes.length === 0 ? (
-              <p
-                className="empty"
-                onDragOver={(e) => {
-                  if (!dragId) return
-                  e.preventDefault()
-                  setOver({ type: 'section', section })
-                }}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  applyDrop(
-                    { type: 'section', section },
-                    e.dataTransfer.getData('text/plain') || dragId,
-                  )
-                }}
-              >
+              <p className="empty" data-drop-section={section}>
                 Nothing here
               </p>
             ) : (
@@ -459,46 +476,22 @@ function Row({
     onStopEdit()
   }
 
-  function onDragOver(e) {
-    if (!dnd.dragId || dnd.dragId === item.id) return
-    e.preventDefault()
-    e.stopPropagation()
-    e.dataTransfer.dropEffect = 'move'
-    const where = zoneFromPoint(
-      e.clientY,
-      e.currentTarget.getBoundingClientRect(),
-      child,
-    )
-    dnd.setOver({ type: 'row', id: item.id, where })
-  }
-
-  function onDrop(e) {
-    e.preventDefault()
-    e.stopPropagation()
-    const where = zoneFromPoint(
-      e.clientY,
-      e.currentTarget.getBoundingClientRect(),
-      child,
-    )
-    dnd.applyDrop(
-      { type: 'row', id: item.id, where },
-      e.dataTransfer.getData('text/plain') || dnd.dragId,
-    )
-  }
-
   return (
     <div
       className={`row${child ? ' child' : ''}${item.done ? ' is-done' : ''}${child && dnd.dragId === item.id ? ' dragging' : ''}${zone ? ` drop-${zone}` : ''}`}
       data-section={item.section}
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      data-drop-row={item.id}
+      data-drop-child={child ? '1' : '0'}
     >
       <span
         className="grip"
-        draggable={!editing}
         aria-label={`Drag ${item.text}`}
-        onDragStart={(e) => dnd.onDragStart(e, item.id)}
-        onDragEnd={dnd.onDragEnd}
+        onPointerDown={
+          editing ? undefined : (e) => dnd.onGripPointerDown(e, item.id)
+        }
+        onPointerMove={dnd.onGripPointerMove}
+        onPointerUp={dnd.onGripPointerUp}
+        onPointerCancel={dnd.onGripPointerCancel}
       />
       <label className="check">
         <input
