@@ -1,14 +1,13 @@
-export function byText(a, b) {
+export function byOrder(a, b) {
   return (
-    String(a.text ?? '').localeCompare(String(b.text ?? ''), undefined, {
-      sensitivity: 'base',
-    }) || String(a.id).localeCompare(String(b.id))
+    (a.order ?? 0) - (b.order ?? 0) ||
+    String(a.id).localeCompare(String(b.id))
   )
 }
 
 export function forest(items, section, done) {
   const kidsOf = (id) =>
-    items.filter((item) => item.parentId === id).sort(byText)
+    items.filter((item) => item.parentId === id).sort(byOrder)
   return items
     .filter(
       (item) =>
@@ -16,6 +15,6 @@ export function forest(items, section, done) {
         item.done === done &&
         (section == null || item.section === section),
     )
-    .sort(byText)
+    .sort(byOrder)
     .map((item) => ({ ...item, children: kidsOf(item.id) }))
 }

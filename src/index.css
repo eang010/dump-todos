@@ -203,6 +203,9 @@ ul {
   width: 0.85rem;
   height: 1.15rem;
   cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   background: radial-gradient(circle, var(--mute) 1.1px, transparent 1.25px)
     0 0 / 0.42rem 0.38rem;
   opacity: 0.55;
@@ -210,6 +213,12 @@ ul {
 
 .grip:active {
   cursor: grabbing;
+}
+
+body:has(.dragging) {
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
 }
 
 .block.dragging,
