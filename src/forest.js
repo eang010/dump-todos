@@ -5,9 +5,18 @@ export function byOrder(a, b) {
   )
 }
 
+export function byNested(a, b) {
+  return (
+    Number(a.done) - Number(b.done) ||
+    String(a.text || '').localeCompare(String(b.text || ''), undefined, {
+      sensitivity: 'base',
+    })
+  )
+}
+
 export function forest(items, section, done) {
   const kidsOf = (id) =>
-    items.filter((item) => item.parentId === id).sort(byOrder)
+    items.filter((item) => item.parentId === id).sort(byNested)
   return items
     .filter(
       (item) =>

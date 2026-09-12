@@ -19,8 +19,9 @@ test('forest lists open items by order with nested kids', () => {
     { id: 'a', text: 'Zebra', section: 'work', done: false, parentId: null, order: 1 },
     { id: 'b', text: 'Alpha', section: 'work', done: false, parentId: null, order: 0 },
     { id: 'c', text: 'Milk', section: 'personal', done: false, parentId: null, order: 0 },
-    { id: 'a1', text: 'Nested Z', section: 'work', done: false, parentId: 'a', order: 1 },
-    { id: 'a2', text: 'Nested A', section: 'work', done: false, parentId: 'a', order: 0 },
+    { id: 'a1', text: 'Nested Z', section: 'work', done: false, parentId: 'a', order: 0 },
+    { id: 'a2', text: 'Nested A', section: 'work', done: false, parentId: 'a', order: 1 },
+    { id: 'a3', text: 'Nested M', section: 'work', done: true, parentId: 'a', order: 0 },
     { id: 'd', text: 'Done', section: 'work', done: true, parentId: null, order: 0 },
   ]
   const work = forest(items, 'work', false)
@@ -30,7 +31,7 @@ test('forest lists open items by order with nested kids', () => {
   )
   assert.deepEqual(
     work[1].children.map((node) => node.text),
-    ['Nested A', 'Nested Z'],
+    ['Nested A', 'Nested Z', 'Nested M'],
   )
   assert.deepEqual(
     forest(items, null, true).map((node) => node.text),
