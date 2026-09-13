@@ -20,6 +20,36 @@ const LABELS = {
   ideas: 'Ideas',
   inbox: 'Inbox',
 }
+const WHENS = [
+  { value: '', label: 'Anytime' },
+  { value: 'today', label: 'Today' },
+  { value: 'tomorrow', label: 'Tomorrow' },
+  { value: 'week', label: 'This week' },
+  { value: 'later', label: 'Later' },
+]
+const WHEN_HEAD = {
+  today: 'Today',
+  tomorrow: 'Tomorrow',
+  week: 'This week',
+  later: 'Later',
+}
+
+function clusters(nodes) {
+  if (!nodes.some((node) => node.when)) {
+    return [{ key: '', label: null, nodes }]
+  }
+  const buckets = { today: [], tomorrow: [], week: [], later: [], '': [] }
+  for (const node of nodes) {
+    ;(buckets[node.when] || buckets['']).push(node)
+  }
+  return ['today', 'tomorrow', 'week', 'later', '']
+    .filter((key) => buckets[key].length)
+    .map((key) => ({
+      key,
+      label: WHEN_HEAD[key] || null,
+      nodes: buckets[key],
+    }))
+}
 
 function later(fn) {
   queueMicrotask(fn)
@@ -95,6 +125,7 @@ export default function App() {
         done: false,
         parentId: null,
         order: base - parsed.length + i,
+        when: null,
         createdAt: now + i,
       }))
       later(() =>
@@ -309,16 +340,23 @@ export default function App() {
               </p>
             ) : (
               <ul>
-                {nodes.map((node) => (
-                  <Block
-                    key={node.id}
-                    node={node}
-                    editingId={editingId}
-                    onEdit={setEditingId}
-                    onPatch={patch}
-                    onRemove={remove}
-                    dnd={dnd}
-                  />
+                {clusters(nodes).map((group) => (
+                  <li key={group.key || 'rest'} className="cluster">
+                    {group.label && <h3>{group.label}</h3>}
+                    <ul>
+                      {group.nodes.map((node) => (
+                        <Block
+                          key={node.id}
+                          node={node}
+                          editingId={editingId}
+                          onEdit={setEditingId}
+                          onPatch={patch}
+                          onRemove={remove}
+                          dnd={dnd}
+                        />
+                      ))}
+                    </ul>
+                  </li>
                 ))}
               </ul>
             )}
@@ -394,7 +432,8 @@ function Setup() {
           Make a full-page database with <strong>Name</strong> (title),{' '}
           <strong>Section</strong> (select: Work, Personal, Ideas, Inbox),{' '}
           <strong>Done</strong> (checkbox), <strong>Order</strong> (number),{' '}
-          <strong>Parent</strong> (text).
+          <strong>Parent</strong> (text), <strong>When</strong> (select: Today,
+          Tomorrow, This week, Later).
         </li>
         <li>Share the database with the integration.</li>
         <li>
@@ -502,20 +541,42 @@ function Row({
         />
       </label>
       {editing ? (
-        <input
-          className="edit"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onBlur={save}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') save()
-            if (e.key === 'Escape') {
-              setValue(item.text)
-              onStopEdit()
-            }
+        <div
+          className="edit-wrap"
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget)) save()
           }}
-          autoFocus
-        />
+        >
+          <input
+            className="edit"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') save()
+              if (e.key === 'Escape') {
+                setValue(item.text)
+                onStopEdit()
+              }
+            }}
+            autoFocus
+          />
+          {!child && (
+            <select
+              className="when-edit"
+              value={item.when || ''}
+              aria-label="When to do this"
+              onChange={(e) =>
+                onPatch(item.id, { when: e.target.value || null })
+              }
+            >
+              {WHENS.map((when) => (
+                <option key={when.value} value={when.value}>
+                  {when.label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       ) : (
         <button type="button" className="text" onClick={onEdit}>
           {item.text}

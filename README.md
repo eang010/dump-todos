@@ -16,7 +16,7 @@ And when I actually have the capacity to do real work, I still want the list to 
 
 That is this project.
 
-One box. You dump. It sorts into Work, Personal, Ideas, or Inbox. Drag a row onto another if something needs a nest. Muted colors. Enter to add. Check it off. That is most of it.
+One box. You dump. It sorts into Work, Personal, Ideas, or Inbox. Drag a row onto another if something needs a nest. Tap a task if you want to give it a day. Today, tomorrow, this week, later gather under quiet headings. Skip it and the list stays flat. Muted colors. Enter to add. Check it off. That is most of it.
 
 If your head is also full all the time, maybe this is a small thing you can do to quiet it down. Just a little.
 
@@ -29,6 +29,7 @@ If your head is also full all the time, maybe this is a small thing you can do t
    - **Done** — checkbox
    - **Order** — number
    - **Parent** — text (leave empty; the app fills it when you nest)
+   - **When** — select options `Today`, `Tomorrow`, `This week`, `Later` (leave empty if you do not care)
 3. Open the database → **•••** → **Connect to** → pick the integration.
 4. Copy the database id from the URL: `notion.so/YourName/`**`32hexchars`**`?v=...`
 

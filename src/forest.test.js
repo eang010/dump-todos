@@ -38,3 +38,16 @@ test('forest lists open items by order with nested kids', () => {
     ['Done'],
   )
 })
+
+test('open items with a when float above the rest, then keep order', () => {
+  const items = [
+    { id: 'a', text: 'Later one', section: 'work', done: false, parentId: null, order: 0, when: 'later' },
+    { id: 'b', text: 'No when', section: 'work', done: false, parentId: null, order: 1 },
+    { id: 'c', text: 'Today', section: 'work', done: false, parentId: null, order: 2, when: 'today' },
+    { id: 'd', text: 'Tomorrow', section: 'work', done: false, parentId: null, order: 3, when: 'tomorrow' },
+  ]
+  assert.deepEqual(
+    forest(items, 'work', false).map((node) => node.text),
+    ['Today', 'Tomorrow', 'Later one', 'No when'],
+  )
+})

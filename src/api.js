@@ -69,7 +69,8 @@ function same(a, b) {
     a.section === b.section &&
     a.done === b.done &&
     a.parentId === b.parentId &&
-    a.order === b.order
+    a.order === b.order &&
+    a.when === b.when
   )
 }
 

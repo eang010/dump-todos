@@ -184,6 +184,20 @@ ul {
   border-bottom: 1px solid var(--line);
 }
 
+.cluster + .cluster {
+  margin-top: 0.9rem;
+}
+
+.cluster > h3 {
+  margin: 0 0 0.1rem;
+  padding-left: 1.7rem;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
 .row {
   display: grid;
   grid-template-columns: auto auto 1fr auto auto;
@@ -311,12 +325,33 @@ body:has(.dragging) {
   text-underline-offset: 3px;
 }
 
+.edit-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .edit {
   width: 100%;
+  min-width: 0;
   border-bottom: 1px solid var(--ink);
   border-radius: 0;
   outline: none;
   background: transparent;
+}
+
+.when-edit {
+  appearance: none;
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  color: var(--mute);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0;
+  cursor: pointer;
 }
 
 .chip {
