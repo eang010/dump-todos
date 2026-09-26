@@ -234,6 +234,23 @@ export default function App() {
     })
   }
 
+  function clearFocusSelection() {
+    dirtyRef.current = true
+    setItems((prev) => {
+      const next = prev.map((item) =>
+        item.focus ? { ...item, focus: false } : item,
+      )
+      later(() =>
+        enqueueWrite(() => persistDiff(prev, next, liveIds()))
+          .then(() => {
+            dirtyRef.current = false
+          })
+          .catch((err) => setError(err.message)),
+      )
+      return next
+    })
+  }
+
   function clearDrag() {
     dragActiveRef.current = false
     dragIdRef.current = null
@@ -333,7 +350,7 @@ export default function App() {
     setFocusMode('picking')
   }
 
-  const dockAction = focused
+  const primaryDockAction = focused
     ? 'exit'
     : picking
       ? focusCount > 0
@@ -349,7 +366,7 @@ export default function App() {
           <p className="hint">Tap root tasks to focus on. Nested tasks come along.</p>
         )}
         {focused && focusNodes.length === 0 && (
-          <p className="hint">Nothing left in focus. Exit, then pick again.</p>
+          <p className="hint">Nothing left in focus. Tap Change to pick again.</p>
         )}
         {status === 'setup' && <Setup />}
         {status === 'error' && (
@@ -475,7 +492,7 @@ export default function App() {
         {picking && (
           <p className="dump-tip">
             {focusCount
-              ? `${focusCount} selected — tap play to start`
+              ? `${focusCount} selected — play to start, or clear all`
               : 'Tap tasks, or the button to cancel'}
           </p>
         )}
@@ -497,22 +514,44 @@ export default function App() {
             />
           </form>
           {status === 'ready' && (
-            <button
-              type="button"
-              className={`dock-action${dockAction === 'start' ? ' is-armed' : ''}`}
-              onClick={onDockFocusAction}
-              aria-label={
-                dockAction === 'exit'
-                  ? 'Exit focus'
-                  : dockAction === 'start'
-                    ? 'Start focus'
-                    : dockAction === 'cancel'
-                      ? 'Cancel focus'
-                      : 'Enter focus'
-              }
-            >
-              <DockIcon kind={dockAction} />
-            </button>
+            <div className="dock-actions">
+              {focused && (
+                <button
+                  type="button"
+                  className="dock-action"
+                  onClick={() => setFocusMode('picking')}
+                  aria-label="Change focus selection"
+                >
+                  <DockIcon kind="change" />
+                </button>
+              )}
+              {picking && focusCount > 0 && (
+                <button
+                  type="button"
+                  className="dock-action"
+                  onClick={clearFocusSelection}
+                  aria-label="Clear all focus selections"
+                >
+                  <DockIcon kind="clear" />
+                </button>
+              )}
+              <button
+                type="button"
+                className={`dock-action${primaryDockAction === 'start' ? ' is-armed' : ''}`}
+                onClick={onDockFocusAction}
+                aria-label={
+                  primaryDockAction === 'exit'
+                    ? 'Exit focus'
+                    : primaryDockAction === 'start'
+                      ? 'Start focus'
+                      : primaryDockAction === 'cancel'
+                        ? 'Cancel focus'
+                        : 'Enter focus'
+                }
+              >
+                <DockIcon kind={primaryDockAction} />
+              </button>
+            </div>
           )}
         </div>
       </footer>
@@ -530,6 +569,41 @@ function DockIcon({ kind }) {
           stroke="currentColor"
           strokeWidth="1.6"
           strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+  if (kind === 'change') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M14.2 5.3l4.5 4.5M5 19l.9-4.1L15.8 5.9a1.6 1.6 0 0 1 2.3 0l.1.1a1.6 1.6 0 0 1 0 2.3L8.1 18.1 4 19z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+  if (kind === 'clear') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M8 8l8 8M16 8l-8 8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+        <circle
+          cx="12"
+          cy="12"
+          r="7.25"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
         />
       </svg>
     )
