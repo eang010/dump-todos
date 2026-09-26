@@ -52,51 +52,6 @@ select {
   margin: 0 -0.15rem;
 }
 
-.top-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.top-row h1 {
-  margin: 0;
-}
-
-.mode-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
-.mode-btn {
-  appearance: none;
-  border: 1px solid var(--line);
-  background: var(--lift);
-  color: var(--ink);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.mode-btn.quiet {
-  background: transparent;
-  color: var(--mute);
-}
-
-.mode-btn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.mode-btn:not(:disabled):hover {
-  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
-}
-
 .focus-toggle {
   width: 1.1rem;
   height: 1.1rem;
@@ -156,6 +111,13 @@ main {
   gap: 0.45rem;
 }
 
+.dock-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  pointer-events: auto;
+}
+
 .dump-tip {
   margin: 0 auto;
   max-width: max-content;
@@ -172,7 +134,8 @@ main {
 }
 
 .dump {
-  pointer-events: auto;
+  flex: 1;
+  min-width: 0;
 }
 
 .dump input {
@@ -190,6 +153,10 @@ main {
   outline: none;
 }
 
+.dump input:disabled {
+  opacity: 0.55;
+}
+
 .dump input::placeholder {
   color: color-mix(in srgb, var(--mute) 85%, transparent);
 }
@@ -197,6 +164,51 @@ main {
 .dump input:focus {
   border-color: color-mix(in srgb, white 70%, var(--ink) 12%);
   background: color-mix(in srgb, white 38%, var(--paper) 18%);
+}
+
+.dock-action {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, white 55%, var(--ink) 8%);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+  cursor: pointer;
+  background: color-mix(in srgb, white 28%, var(--paper) 22%);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 50%, transparent) inset,
+    0 10px 28px color-mix(in srgb, var(--ink) 12%, transparent);
+  transition:
+    background 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.dock-action svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: block;
+}
+
+.dock-action:hover {
+  border-color: color-mix(in srgb, white 70%, var(--ink) 12%);
+  background: color-mix(in srgb, white 38%, var(--paper) 18%);
+}
+
+.dock-action.is-armed {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.dock-action:active {
+  transform: scale(0.96);
 }
 
 .hint {

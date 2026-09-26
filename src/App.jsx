@@ -320,63 +320,36 @@ export default function App() {
   ).length
   const blocked = status !== 'ready'
 
+  function onDockFocusAction() {
+    if (focused) {
+      setFocusMode(null)
+      return
+    }
+    if (picking) {
+      if (focusCount > 0) setFocusMode('active')
+      else setFocusMode(null)
+      return
+    }
+    setFocusMode('picking')
+  }
+
+  const dockAction = focused
+    ? 'exit'
+    : picking
+      ? focusCount > 0
+        ? 'start'
+        : 'cancel'
+      : 'focus'
+
   return (
     <div className={`app${focused ? ' is-focus' : ''}${picking ? ' is-picking' : ''}`}>
       <header className="top">
-        <div className="top-row">
-          <h1>{focused ? 'Focus' : 'To Do List'}</h1>
-          {status === 'ready' && !picking && !focused && (
-            <button
-              type="button"
-              className="mode-btn"
-              onClick={() => setFocusMode('picking')}
-            >
-              Focus
-            </button>
-          )}
-          {picking && (
-            <div className="mode-actions">
-              <button
-                type="button"
-                className="mode-btn quiet"
-                onClick={() => setFocusMode(null)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="mode-btn"
-                disabled={focusCount === 0}
-                onClick={() => setFocusMode('active')}
-              >
-                Start{focusCount ? ` (${focusCount})` : ''}
-              </button>
-            </div>
-          )}
-          {focused && (
-            <div className="mode-actions">
-              <button
-                type="button"
-                className="mode-btn quiet"
-                onClick={() => setFocusMode('picking')}
-              >
-                Change
-              </button>
-              <button
-                type="button"
-                className="mode-btn"
-                onClick={() => setFocusMode(null)}
-              >
-                Exit
-              </button>
-            </div>
-          )}
-        </div>
+        <h1>{focused ? 'Focus' : 'To Do List'}</h1>
         {picking && (
           <p className="hint">Tap root tasks to focus on. Nested tasks come along.</p>
         )}
         {focused && focusNodes.length === 0 && (
-          <p className="hint">Nothing left in focus. Change selection or exit.</p>
+          <p className="hint">Nothing left in focus. Exit, then pick again.</p>
         )}
         {status === 'setup' && <Setup />}
         {status === 'error' && (
@@ -499,7 +472,14 @@ export default function App() {
         {dumpFocused && !picking && !focused && (
           <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
         )}
-        {!picking && (
+        {picking && (
+          <p className="dump-tip">
+            {focusCount
+              ? `${focusCount} selected — tap play to start`
+              : 'Tap tasks, or the button to cancel'}
+          </p>
+        )}
+        <div className="dock-bar">
           <form className="dump" onSubmit={onDumpSubmit}>
             <input
               ref={dumpRef}
@@ -512,13 +492,87 @@ export default function App() {
               onFocus={() => setDumpFocused(true)}
               onBlur={() => setDumpFocused(false)}
               placeholder="To-do…"
-              disabled={blocked}
+              disabled={blocked || picking}
               aria-label="Dump a to-do"
             />
           </form>
-        )}
+          {status === 'ready' && (
+            <button
+              type="button"
+              className={`dock-action${dockAction === 'start' ? ' is-armed' : ''}`}
+              onClick={onDockFocusAction}
+              aria-label={
+                dockAction === 'exit'
+                  ? 'Exit focus'
+                  : dockAction === 'start'
+                    ? 'Start focus'
+                    : dockAction === 'cancel'
+                      ? 'Cancel focus'
+                      : 'Enter focus'
+              }
+            >
+              <DockIcon kind={dockAction} />
+            </button>
+          )}
+        </div>
       </footer>
     </div>
+  )
+}
+
+function DockIcon({ kind }) {
+  if (kind === 'start') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M9 7.5v9l8-4.5-8-4.5z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    )
+  }
+  if (kind === 'exit' || kind === 'cancel') {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M7 7l10 10M17 7L7 17"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle
+        cx="12"
+        cy="12"
+        r="7.25"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="2.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
   )
 }
 
