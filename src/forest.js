@@ -43,3 +43,13 @@ export function forest(items, section, done) {
     .sort(byOpen)
     .map((item) => ({ ...item, children: kidsOf(item.id) }))
 }
+
+/** Open roots marked for focus (plus nested kids), ordered by When then order. */
+export function focusForest(items) {
+  const kidsOf = (id) =>
+    items.filter((item) => item.parentId === id).sort(byNested)
+  return items
+    .filter((item) => !item.parentId && !item.done && item.focus)
+    .sort(byOpen)
+    .map((item) => ({ ...item, children: kidsOf(item.id) }))
+}

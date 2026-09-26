@@ -10,7 +10,7 @@ import {
 } from './api.js'
 import { parseDump } from './classify.js'
 import { destFromPoint } from './dnd.js'
-import { forest } from './forest.js'
+import { focusForest, forest } from './forest.js'
 import { moveItem } from './move.js'
 
 const SECTIONS = ['work', 'personal', 'ideas', 'inbox']
@@ -64,6 +64,8 @@ export default function App() {
   const [editingId, setEditingId] = useState(null)
   const [dragId, setDragId] = useState(null)
   const [over, setOver] = useState(null)
+  /** null | 'picking' | 'active' */
+  const [focusMode, setFocusMode] = useState(null)
   const dumpRef = useRef(null)
   const doneRef = useRef(null)
   const dirtyRef = useRef(false)
@@ -126,6 +128,7 @@ export default function App() {
         parentId: null,
         order: base - parsed.length + i,
         when: null,
+        focus: false,
         createdAt: now + i,
       }))
       later(() =>
@@ -240,7 +243,7 @@ export default function App() {
   }
 
   function applyDrop(dest, id = dragIdRef.current) {
-    if (!id || !dest) {
+    if (!id || !dest || focusMode) {
       clearDrag()
       return
     }
@@ -260,6 +263,7 @@ export default function App() {
   }
 
   function onGripPointerDown(e, id) {
+    if (focusMode) return
     if (e.button !== 0 && e.pointerType === 'mouse') return
     e.preventDefault()
     e.currentTarget.setPointerCapture(e.pointerId)
@@ -303,17 +307,77 @@ export default function App() {
     onGripPointerCancel,
   }
 
+  const picking = focusMode === 'picking'
+  const focused = focusMode === 'active'
   const open = SECTIONS.map((section) => ({
     section,
     nodes: forest(items, section, false),
   }))
   const doneNodes = forest(items, null, true)
+  const focusNodes = focusForest(items)
+  const focusCount = items.filter(
+    (item) => !item.parentId && !item.done && item.focus,
+  ).length
   const blocked = status !== 'ready'
 
   return (
-    <div className="app">
+    <div className={`app${focused ? ' is-focus' : ''}${picking ? ' is-picking' : ''}`}>
       <header className="top">
-        <h1>To Do List</h1>
+        <div className="top-row">
+          <h1>{focused ? 'Focus' : 'To Do List'}</h1>
+          {status === 'ready' && !picking && !focused && (
+            <button
+              type="button"
+              className="mode-btn"
+              onClick={() => setFocusMode('picking')}
+            >
+              Focus
+            </button>
+          )}
+          {picking && (
+            <div className="mode-actions">
+              <button
+                type="button"
+                className="mode-btn quiet"
+                onClick={() => setFocusMode(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="mode-btn"
+                disabled={focusCount === 0}
+                onClick={() => setFocusMode('active')}
+              >
+                Start{focusCount ? ` (${focusCount})` : ''}
+              </button>
+            </div>
+          )}
+          {focused && (
+            <div className="mode-actions">
+              <button
+                type="button"
+                className="mode-btn quiet"
+                onClick={() => setFocusMode('picking')}
+              >
+                Change
+              </button>
+              <button
+                type="button"
+                className="mode-btn"
+                onClick={() => setFocusMode(null)}
+              >
+                Exit
+              </button>
+            </div>
+          )}
+        </div>
+        {picking && (
+          <p className="hint">Tap root tasks to focus on. Nested tasks come along.</p>
+        )}
+        {focused && focusNodes.length === 0 && (
+          <p className="hint">Nothing left in focus. Change selection or exit.</p>
+        )}
         {status === 'setup' && <Setup />}
         {status === 'error' && (
           <p className="banner">{error || 'Could not reach Notion.'}</p>
@@ -322,7 +386,38 @@ export default function App() {
         {error && status === 'ready' && <p className="banner">{error}</p>}
       </header>
 
-      {status === 'ready' && (
+      {status === 'ready' && focused && (
+        <main>
+          <section className="bucket focus-bucket">
+            {focusNodes.length === 0 ? (
+              <p className="empty">No focused tasks</p>
+            ) : (
+              <ul>
+                {clusters(focusNodes).map((group) => (
+                  <li key={group.key || 'rest'} className="cluster">
+                    {group.label && <h3>{group.label}</h3>}
+                    <ul>
+                      {group.nodes.map((node) => (
+                        <Block
+                          key={node.id}
+                          node={node}
+                          editingId={editingId}
+                          onEdit={setEditingId}
+                          onPatch={patch}
+                          onRemove={remove}
+                          dnd={dnd}
+                        />
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </main>
+      )}
+
+      {status === 'ready' && !focused && (
         <main>
         {open.map(({ section, nodes }) => (
           <section
@@ -353,6 +448,12 @@ export default function App() {
                           onPatch={patch}
                           onRemove={remove}
                           dnd={dnd}
+                          picking={picking}
+                          onToggleFocus={
+                            picking
+                              ? () => patch(node.id, { focus: !node.focus })
+                              : undefined
+                          }
                         />
                       ))}
                     </ul>
@@ -363,55 +464,59 @@ export default function App() {
           </section>
         ))}
 
-        <details className="done" ref={doneRef}>
-          <summary>
-            Done <span>{doneNodes.length}</span>
-          </summary>
-          {doneNodes.length === 0 ? (
-            <p className="empty">Checked-off items land here</p>
-          ) : (
-            <>
-              <ul>
-                {doneNodes.map((node) => (
-                  <Block
-                    key={node.id}
-                    node={node}
-                    editingId={editingId}
-                    onEdit={setEditingId}
-                    onPatch={patch}
-                    onRemove={remove}
-                    dnd={dnd}
-                  />
-                ))}
-              </ul>
-              <button type="button" className="clear" onClick={clearDone}>
-                Clear done
-              </button>
-            </>
-          )}
-        </details>
+        {!picking && (
+          <details className="done" ref={doneRef}>
+            <summary>
+              Done <span>{doneNodes.length}</span>
+            </summary>
+            {doneNodes.length === 0 ? (
+              <p className="empty">Checked-off items land here</p>
+            ) : (
+              <>
+                <ul>
+                  {doneNodes.map((node) => (
+                    <Block
+                      key={node.id}
+                      node={node}
+                      editingId={editingId}
+                      onEdit={setEditingId}
+                      onPatch={patch}
+                      onRemove={remove}
+                      dnd={dnd}
+                    />
+                  ))}
+                </ul>
+                <button type="button" className="clear" onClick={clearDone}>
+                  Clear done
+                </button>
+              </>
+            )}
+          </details>
+        )}
         </main>
       )}
       <footer className="dock">
-        {dumpFocused && (
+        {dumpFocused && !picking && !focused && (
           <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
         )}
-        <form className="dump" onSubmit={onDumpSubmit}>
-          <input
-            ref={dumpRef}
-            type="text"
-            enterKeyHint="done"
-            autoComplete="off"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onPaste={onDumpPaste}
-            onFocus={() => setDumpFocused(true)}
-            onBlur={() => setDumpFocused(false)}
-            placeholder="To-do…"
-            disabled={blocked}
-            aria-label="Dump a to-do"
-          />
-        </form>
+        {!picking && (
+          <form className="dump" onSubmit={onDumpSubmit}>
+            <input
+              ref={dumpRef}
+              type="text"
+              enterKeyHint="done"
+              autoComplete="off"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onPaste={onDumpPaste}
+              onFocus={() => setDumpFocused(true)}
+              onBlur={() => setDumpFocused(false)}
+              placeholder="To-do…"
+              disabled={blocked}
+              aria-label="Dump a to-do"
+            />
+          </form>
+        )}
       </footer>
     </div>
   )
@@ -433,7 +538,8 @@ function Setup() {
           <strong>Section</strong> (select: Work, Personal, Ideas, Inbox),{' '}
           <strong>Done</strong> (checkbox), <strong>Order</strong> (number),{' '}
           <strong>Parent</strong> (text), <strong>When</strong> (select: Today,
-          Tomorrow, This week, Later).
+          Tomorrow, This week, Later), <strong>Focus</strong> (checkbox; the app
+          can add this).
         </li>
         <li>Share the database with the integration.</li>
         <li>
@@ -445,9 +551,20 @@ function Setup() {
   )
 }
 
-function Block({ node, editingId, onEdit, onPatch, onRemove, dnd }) {
+function Block({
+  node,
+  editingId,
+  onEdit,
+  onPatch,
+  onRemove,
+  dnd,
+  picking = false,
+  onToggleFocus,
+}) {
   return (
-    <li className={`block${dnd.dragId === node.id ? ' dragging' : ''}`}>
+    <li
+      className={`block${dnd.dragId === node.id ? ' dragging' : ''}${picking && node.focus ? ' is-focus-pick' : ''}`}
+    >
       <Row
         item={node}
         child={false}
@@ -462,6 +579,8 @@ function Block({ node, editingId, onEdit, onPatch, onRemove, dnd }) {
         onPatch={onPatch}
         onRemove={onRemove}
         dnd={dnd}
+        picking={picking}
+        onToggleFocus={onToggleFocus}
       />
       {node.children.length > 0 && (
         <ul className="kids">
@@ -477,6 +596,7 @@ function Block({ node, editingId, onEdit, onPatch, onRemove, dnd }) {
                 onPatch={onPatch}
                 onRemove={onRemove}
                 dnd={dnd}
+                picking={picking}
               />
             </li>
           ))}
@@ -496,6 +616,8 @@ function Row({
   onPatch,
   onRemove,
   dnd,
+  picking = false,
+  onToggleFocus,
 }) {
   const [value, setValue] = useState(item.text)
   const zone =
@@ -517,30 +639,45 @@ function Row({
 
   return (
     <div
-      className={`row${child ? ' child' : ''}${item.done ? ' is-done' : ''}${child && dnd.dragId === item.id ? ' dragging' : ''}${zone ? ` drop-${zone}` : ''}`}
+      className={`row${child ? ' child' : ''}${item.done ? ' is-done' : ''}${child && dnd.dragId === item.id ? ' dragging' : ''}${zone ? ` drop-${zone}` : ''}${picking && !child && item.focus ? ' focus-picked' : ''}`}
       data-section={item.section}
       data-drop-row={item.id}
       data-drop-child={child ? '1' : '0'}
     >
-      <span
-        className="grip"
-        aria-label={`Drag ${item.text}`}
-        onPointerDown={
-          editing ? undefined : (e) => dnd.onGripPointerDown(e, item.id)
-        }
-        onPointerMove={dnd.onGripPointerMove}
-        onPointerUp={dnd.onGripPointerUp}
-        onPointerCancel={dnd.onGripPointerCancel}
-      />
+      {picking && !child ? (
+        <button
+          type="button"
+          className={`focus-toggle${item.focus ? ' on' : ''}`}
+          aria-pressed={item.focus}
+          aria-label={
+            item.focus
+              ? `Remove ${item.text} from focus`
+              : `Add ${item.text} to focus`
+          }
+          onClick={onToggleFocus}
+        />
+      ) : (
+        <span
+          className="grip"
+          aria-label={`Drag ${item.text}`}
+          onPointerDown={
+            editing ? undefined : (e) => dnd.onGripPointerDown(e, item.id)
+          }
+          onPointerMove={dnd.onGripPointerMove}
+          onPointerUp={dnd.onGripPointerUp}
+          onPointerCancel={dnd.onGripPointerCancel}
+        />
+      )}
       <label className="check">
         <input
           type="checkbox"
           checked={item.done}
+          disabled={picking}
           onChange={(e) => onPatch(item.id, { done: e.target.checked })}
           aria-label={`Mark ${item.text} done`}
         />
       </label>
-      {editing ? (
+      {editing && !picking ? (
         <div
           className="edit-wrap"
           onBlur={(e) => {
@@ -577,13 +714,18 @@ function Row({
             </select>
           )}
         </div>
+      ) : picking && !child ? (
+        <button type="button" className="text" onClick={onToggleFocus}>
+          {item.text}
+          {progress && <span className="progress">{progress}</span>}
+        </button>
       ) : (
-        <button type="button" className="text" onClick={onEdit}>
+        <button type="button" className="text" onClick={onEdit} disabled={picking}>
           {item.text}
           {progress && <span className="progress">{progress}</span>}
         </button>
       )}
-      {!child && (
+      {!child && !picking && (
         <select
           className="chip"
           value={item.section}
@@ -597,14 +739,16 @@ function Row({
           ))}
         </select>
       )}
-      <button
-        type="button"
-        className="drop"
-        aria-label={`Remove ${item.text}`}
-        onClick={() => onRemove(item.id)}
-      >
-        ×
-      </button>
+      {!picking && (
+        <button
+          type="button"
+          className="drop"
+          aria-label={`Remove ${item.text}`}
+          onClick={() => onRemove(item.id)}
+        >
+          ×
+        </button>
+      )}
     </div>
   )
 }

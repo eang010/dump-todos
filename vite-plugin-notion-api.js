@@ -36,6 +36,8 @@ function memoryApi() {
       done: false,
       parentId: row.parentId,
       order: row.order,
+      when: null,
+      focus: false,
       createdAt: Date.now(),
     })
   }
@@ -50,6 +52,8 @@ function memoryApi() {
         done: Boolean(body.done),
         parentId: body.parentId ?? null,
         order: body.order ?? 0,
+        when: body.when ?? null,
+        focus: Boolean(body.focus),
         createdAt: body.createdAt ?? Date.now(),
       }
       items.set(id, item)
@@ -62,7 +66,12 @@ function memoryApi() {
         err.status = 404
         throw err
       }
-      const next = { ...prev, ...body, id }
+      const next = {
+        ...prev,
+        ...body,
+        id,
+        focus: body.focus !== undefined ? Boolean(body.focus) : prev.focus,
+      }
       items.set(id, next)
       return next
     },
