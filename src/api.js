@@ -70,7 +70,8 @@ function same(a, b) {
     a.done === b.done &&
     a.parentId === b.parentId &&
     a.order === b.order &&
-    a.when === b.when
+    a.when === b.when &&
+    Boolean(a.focus) === Boolean(b.focus)
   )
 }
 
