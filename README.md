@@ -16,7 +16,7 @@ And when I actually have the capacity to do real work, I still want the list to 
 
 That is this project.
 
-One box. You dump. It sorts into Work, Personal, Ideas, or Inbox. Drag a row onto another if something needs a nest. Tap a task if you want to give it a day. Today, tomorrow, this week, later gather under quiet headings. Skip it and the list stays flat. When the whole list is too loud, tap Focus, pick the root tasks you care about right now, and Start — nested kids come along, ordered by When. Muted colors. Enter to add. Check it off. That is most of it.
+One box. You dump. It sorts into Work, Personal, Ideas, or Inbox. Drag a row onto another if something needs a nest. Tap a task if you want to give it a day. Today, tomorrow, this week, later gather under quiet headings. Skip it and the list stays flat. When the whole list is too loud, tap the round target next to the dump bar, pick the root tasks you care about, then the same button turns into play to start — nested kids come along, ordered by When. Tap the × to leave. Muted colors. Enter to add. Check it off. That is most of it.
 
 If your head is also full all the time, maybe this is a small thing you can do to quiet it down. Just a little.
 
