@@ -118,6 +118,13 @@ main {
   pointer-events: auto;
 }
 
+.dock-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
 .dump-tip {
   margin: 0 auto;
   max-width: max-content;
