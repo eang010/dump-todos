@@ -328,7 +328,7 @@ ul {
 
 .row {
   display: grid;
-  grid-template-columns: auto auto 1fr auto auto;
+  grid-template-columns: auto auto auto 1fr auto;
   gap: 0.45rem;
   align-items: center;
   padding: 0.45rem 0.15rem;
@@ -488,36 +488,128 @@ body:has(.dragging) {
   cursor: pointer;
 }
 
-.chip {
-  appearance: none;
-  border: 0;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
-  color: var(--mute);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  padding: 0.28rem 1.15rem 0.28rem 0.5rem;
-  border-radius: 999px;
-  cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='%23857d74' d='M0 0l5 6 5-6z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 0.4rem center;
+.section-pick {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 1;
 }
 
-.row[data-section='work'] .chip {
+.section-pick.is-open {
+  z-index: 5;
+}
+
+.section-glyph {
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--mute);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  transition:
+    transform 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.section-glyph:hover {
+  transform: scale(1.06);
+}
+
+.section-pick[data-section='work'] .section-glyph {
   color: var(--work);
-  background-color: color-mix(in srgb, var(--work) 12%, transparent);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='%233d5a6c' d='M0 0l5 6 5-6z'/></svg>");
+  background: color-mix(in srgb, var(--work) 14%, transparent);
 }
-.row[data-section='personal'] .chip {
+.section-pick[data-section='personal'] .section-glyph {
   color: var(--personal);
-  background-color: color-mix(in srgb, var(--personal) 12%, transparent);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='%239a4f3c' d='M0 0l5 6 5-6z'/></svg>");
+  background: color-mix(in srgb, var(--personal) 14%, transparent);
 }
-.row[data-section='ideas'] .chip {
+.section-pick[data-section='ideas'] .section-glyph {
   color: var(--ideas);
-  background-color: color-mix(in srgb, var(--ideas) 12%, transparent);
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path fill='%235c6b3f' d='M0 0l5 6 5-6z'/></svg>");
+  background: color-mix(in srgb, var(--ideas) 14%, transparent);
+}
+
+.section-menu {
+  position: absolute;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: auto;
+  min-width: 7.5rem;
+  margin: 0;
+  padding: 0.28rem;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--lift);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 28px color-mix(in srgb, var(--ink) 12%, transparent);
+  transform-origin: top left;
+  animation: section-menu-in 0.16s ease;
+}
+
+@keyframes section-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-0.15rem);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.section-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0.42rem 0.55rem;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--ink);
+}
+
+.section-option:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.section-option.is-selected {
+  font-weight: 650;
+}
+
+.section-option[data-section='work'].is-selected {
+  color: var(--work);
+  background: color-mix(in srgb, var(--work) 12%, transparent);
+}
+.section-option[data-section='personal'].is-selected {
+  color: var(--personal);
+  background: color-mix(in srgb, var(--personal) 12%, transparent);
+}
+.section-option[data-section='ideas'].is-selected {
+  color: var(--ideas);
+  background: color-mix(in srgb, var(--ideas) 12%, transparent);
+}
+.section-option[data-section='inbox'].is-selected {
+  color: var(--inbox);
+  background: color-mix(in srgb, var(--inbox) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-glyph {
+    transition: none;
+  }
+  .section-menu {
+    animation: none;
+  }
 }
 
 .drop {
@@ -624,8 +716,8 @@ body:has(.dragging) {
 }
 
 @media (max-width: 420px) {
-  .chip {
-    max-width: 5.8rem;
+  .section-menu {
+    min-width: 6.8rem;
   }
 }
 
@@ -670,9 +762,9 @@ body:has(.dragging) {
 }
 
 .skeleton-chip {
-  width: 3.6rem;
-  height: 1.35rem;
-  border-radius: 999px;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 50%;
 }
 
 .skeleton-drop {

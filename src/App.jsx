@@ -20,6 +20,12 @@ const LABELS = {
   ideas: 'Ideas',
   inbox: 'Inbox',
 }
+const SHORT = {
+  work: 'W',
+  personal: 'P',
+  ideas: 'I',
+  inbox: 'I',
+}
 const WHENS = [
   { value: '', label: 'Anytime' },
   { value: 'today', label: 'Today' },
@@ -711,8 +717,8 @@ function SkeletonRow({ width }) {
       <div className="row skeleton-row">
         <span className="skeleton-bone skeleton-grip" />
         <span className="skeleton-bone skeleton-check" />
-        <span className="skeleton-bone skeleton-text" style={{ width: `${width}%` }} />
         <span className="skeleton-bone skeleton-chip" />
+        <span className="skeleton-bone skeleton-text" style={{ width: `${width}%` }} />
         <span className="skeleton-bone skeleton-drop" />
       </div>
     </li>
@@ -857,6 +863,12 @@ function Row({
           aria-label={`Mark ${item.text} done`}
         />
       </label>
+      {!child && !picking && (
+        <SectionPicker
+          value={item.section}
+          onChange={(section) => onPatch(item.id, { section })}
+        />
+      )}
       {editing && !picking ? (
         <div
           className="edit-wrap"
@@ -905,20 +917,6 @@ function Row({
           {progress && <span className="progress">{progress}</span>}
         </button>
       )}
-      {!child && !picking && (
-        <select
-          className="chip"
-          value={item.section}
-          aria-label="Move to section"
-          onChange={(e) => onPatch(item.id, { section: e.target.value })}
-        >
-          {SECTIONS.map((section) => (
-            <option key={section} value={section}>
-              {LABELS[section]}
-            </option>
-          ))}
-        </select>
-      )}
       {picking && !child && (
         <button
           type="button"
@@ -941,6 +939,67 @@ function Row({
         >
           ×
         </button>
+      )}
+    </div>
+  )
+}
+
+function SectionPicker({ value, onChange }) {
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onPointerDown(e) {
+      if (!rootRef.current?.contains(e.target)) setOpen(false)
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div
+      ref={rootRef}
+      className={`section-pick${open ? ' is-open' : ''}`}
+      data-section={value}
+    >
+      <button
+        type="button"
+        className="section-glyph"
+        aria-label={`Section: ${LABELS[value] || value}`}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        onClick={() => setOpen((v) => !v)}
+      >
+        {SHORT[value] || '?'}
+      </button>
+      {open && (
+        <ul className="section-menu" role="listbox" aria-label="Move to section">
+          {SECTIONS.map((section) => (
+            <li key={section}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={section === value}
+                className={`section-option${section === value ? ' is-selected' : ''}`}
+                data-section={section}
+                onClick={() => {
+                  onChange(section)
+                  setOpen(false)
+                }}
+              >
+                {LABELS[section]}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )
