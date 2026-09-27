@@ -717,8 +717,8 @@ function SkeletonRow({ width }) {
       <div className="row skeleton-row">
         <span className="skeleton-bone skeleton-grip" />
         <span className="skeleton-bone skeleton-check" />
-        <span className="skeleton-bone skeleton-text" style={{ width: `${width}%` }} />
         <span className="skeleton-bone skeleton-chip" />
+        <span className="skeleton-bone skeleton-text" style={{ width: `${width}%` }} />
         <span className="skeleton-bone skeleton-drop" />
       </div>
     </li>
@@ -863,6 +863,12 @@ function Row({
           aria-label={`Mark ${item.text} done`}
         />
       </label>
+      {!child && !picking && (
+        <SectionPicker
+          value={item.section}
+          onChange={(section) => onPatch(item.id, { section })}
+        />
+      )}
       {editing && !picking ? (
         <div
           className="edit-wrap"
@@ -910,12 +916,6 @@ function Row({
           {item.text}
           {progress && <span className="progress">{progress}</span>}
         </button>
-      )}
-      {!child && !picking && (
-        <SectionPicker
-          value={item.section}
-          onChange={(section) => onPatch(item.id, { section })}
-        />
       )}
       {picking && !child && (
         <button
