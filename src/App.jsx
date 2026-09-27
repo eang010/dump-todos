@@ -20,6 +20,12 @@ const LABELS = {
   ideas: 'Ideas',
   inbox: 'Inbox',
 }
+const SHORT = {
+  work: 'W',
+  personal: 'P',
+  ideas: 'I',
+  inbox: 'I',
+}
 const WHENS = [
   { value: '', label: 'Anytime' },
   { value: 'today', label: 'Today' },
@@ -814,6 +820,7 @@ function Row({
   onToggleFocus,
 }) {
   const [value, setValue] = useState(item.text)
+  const [sectionOpen, setSectionOpen] = useState(false)
   const zone =
     dnd.over?.type === 'row' && dnd.over.id === item.id ? dnd.over.where : null
 
@@ -910,11 +917,21 @@ function Row({
           className="chip"
           value={item.section}
           aria-label="Move to section"
-          onChange={(e) => onPatch(item.id, { section: e.target.value })}
+          onFocus={() => setSectionOpen(true)}
+          onBlur={() => setSectionOpen(false)}
+          onChange={(e) => {
+            onPatch(item.id, { section: e.target.value })
+            setSectionOpen(false)
+            e.currentTarget.blur()
+          }}
         >
           {SECTIONS.map((section) => (
             <option key={section} value={section}>
-              {LABELS[section]}
+              {sectionOpen
+                ? LABELS[section]
+                : section === item.section
+                  ? SHORT[section]
+                  : LABELS[section]}
             </option>
           ))}
         </select>
