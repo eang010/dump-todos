@@ -820,30 +820,16 @@ function Row({
       data-drop-row={item.id}
       data-drop-child={child ? '1' : '0'}
     >
-      {picking && !child ? (
-        <button
-          type="button"
-          className={`focus-toggle${item.focus ? ' on' : ''}`}
-          aria-pressed={item.focus}
-          aria-label={
-            item.focus
-              ? `Remove ${item.text} from focus`
-              : `Add ${item.text} to focus`
-          }
-          onClick={onToggleFocus}
-        />
-      ) : (
-        <span
-          className="grip"
-          aria-label={`Drag ${item.text}`}
-          onPointerDown={
-            editing ? undefined : (e) => dnd.onGripPointerDown(e, item.id)
-          }
-          onPointerMove={dnd.onGripPointerMove}
-          onPointerUp={dnd.onGripPointerUp}
-          onPointerCancel={dnd.onGripPointerCancel}
-        />
-      )}
+      <span
+        className="grip"
+        aria-label={`Drag ${item.text}`}
+        onPointerDown={
+          editing || picking ? undefined : (e) => dnd.onGripPointerDown(e, item.id)
+        }
+        onPointerMove={dnd.onGripPointerMove}
+        onPointerUp={dnd.onGripPointerUp}
+        onPointerCancel={dnd.onGripPointerCancel}
+      />
       <label className="check">
         <input
           type="checkbox"
@@ -914,6 +900,19 @@ function Row({
             </option>
           ))}
         </select>
+      )}
+      {picking && !child && (
+        <button
+          type="button"
+          className={`focus-toggle${item.focus ? ' on' : ''}`}
+          aria-pressed={item.focus}
+          aria-label={
+            item.focus
+              ? `Remove ${item.text} from focus`
+              : `Add ${item.text} to focus`
+          }
+          onClick={onToggleFocus}
+        />
       )}
       {!picking && (
         <button
