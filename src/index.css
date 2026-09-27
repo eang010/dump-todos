@@ -393,7 +393,7 @@ body:has(.dragging) {
   height: 1.15rem;
   margin: 0;
   border: 1.5px solid var(--mute);
-  border-radius: 999px;
+  border-radius: 3px;
   display: grid;
   place-content: center;
   cursor: pointer;
@@ -407,10 +407,12 @@ body:has(.dragging) {
 
 .check input:checked::after {
   content: '';
-  width: 0.35rem;
-  height: 0.35rem;
-  background: var(--paper);
-  border-radius: 999px;
+  width: 0.26rem;
+  height: 0.46rem;
+  margin-bottom: 0.12rem;
+  border: solid var(--paper);
+  border-width: 0 1.6px 1.6px 0;
+  transform: rotate(45deg);
 }
 
 .text,
