@@ -52,6 +52,31 @@ select {
   margin: 0 -0.15rem;
 }
 
+.top-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.top-row h1 {
+  margin-bottom: 0;
+}
+
+.clear-focus {
+  border: 0;
+  background: none;
+  color: var(--mute);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0;
+  cursor: pointer;
+}
+
+.clear-focus:hover {
+  color: var(--ink);
+}
+
 .focus-toggle {
   width: 1.15rem;
   height: 1.15rem;
