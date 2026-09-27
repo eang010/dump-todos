@@ -372,9 +372,10 @@ export default function App() {
         {status === 'error' && (
           <p className="banner">{error || 'Could not reach Notion.'}</p>
         )}
-        {status === 'loading' && <p className="hint">Loading…</p>}
         {error && status === 'ready' && <p className="banner">{error}</p>}
       </header>
+
+      {status === 'loading' && <SkeletonMain />}
 
       {status === 'ready' && focused && (
         <main>
@@ -676,6 +677,53 @@ function Setup() {
         </li>
       </ol>
     </div>
+  )
+}
+
+const SKELETON_ROWS = {
+  work: [72, 54, 64],
+  personal: [68, 48],
+  ideas: [60, 76, 52],
+  inbox: [58, 70],
+}
+
+function SkeletonRow({ width }) {
+  return (
+    <li className="block" aria-hidden="true">
+      <div className="row skeleton-row">
+        <span className="skeleton-bone skeleton-grip" />
+        <span className="skeleton-bone skeleton-check" />
+        <span className="skeleton-bone skeleton-text" style={{ width: `${width}%` }} />
+        <span className="skeleton-bone skeleton-chip" />
+        <span className="skeleton-bone skeleton-drop" />
+      </div>
+    </li>
+  )
+}
+
+function SkeletonMain() {
+  return (
+    <main aria-busy="true" aria-label="Loading to-dos">
+      {SECTIONS.map((section) => (
+        <section key={section} className="bucket" data-section={section}>
+          <header>
+            <h2>{LABELS[section]}</h2>
+            <span className="skeleton-bone skeleton-count" aria-hidden="true" />
+          </header>
+          <ul>
+            {SKELETON_ROWS[section].map((width, i) => (
+              <SkeletonRow key={i} width={width} />
+            ))}
+          </ul>
+        </section>
+      ))}
+      <div className="done skeleton-done" aria-hidden="true">
+        <div className="skeleton-done-summary">
+          <span className="skeleton-bone skeleton-done-label" />
+          <span className="skeleton-bone skeleton-count" />
+        </div>
+      </div>
+    </main>
   )
 }
 

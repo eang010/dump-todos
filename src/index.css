@@ -588,3 +588,100 @@ body:has(.dragging) {
     max-width: 5.8rem;
   }
 }
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.skeleton-bone {
+  display: block;
+  background: color-mix(in srgb, var(--line) 70%, var(--mute));
+  border-radius: 4px;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-row {
+  animation: none;
+  pointer-events: none;
+}
+
+.skeleton-grip {
+  width: 1.25rem;
+  height: 0.85rem;
+  border-radius: 3px;
+}
+
+.skeleton-check {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+}
+
+.skeleton-text {
+  height: 0.85rem;
+  max-width: 100%;
+  justify-self: start;
+}
+
+.skeleton-chip {
+  width: 3.6rem;
+  height: 1.35rem;
+  border-radius: 999px;
+}
+
+.skeleton-drop {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+}
+
+.skeleton-count {
+  width: 1rem;
+  height: 0.65rem;
+  border-radius: 3px;
+}
+
+.skeleton-done {
+  margin-top: 2.25rem;
+}
+
+.skeleton-done-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.skeleton-done-label {
+  width: 2.6rem;
+  height: 0.65rem;
+}
+
+.skeleton-row .skeleton-bone:nth-child(1) {
+  animation-delay: 0s;
+}
+.skeleton-row .skeleton-bone:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.skeleton-row .skeleton-bone:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.skeleton-row .skeleton-bone:nth-child(4) {
+  animation-delay: 0.24s;
+}
+.skeleton-row .skeleton-bone:nth-child(5) {
+  animation-delay: 0.32s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bone {
+    animation: none;
+    opacity: 0.7;
+  }
+}
