@@ -542,23 +542,25 @@ export default function App() {
               : 'Tap tasks, or the button to cancel'}
           </p>
         )}
-        <div className="dock-bar">
-          <form className="dump" onSubmit={onDumpSubmit}>
-            <input
-              ref={dumpRef}
-              type="text"
-              enterKeyHint="done"
-              autoComplete="off"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onPaste={onDumpPaste}
-              onFocus={() => setDumpFocused(true)}
-              onBlur={() => setDumpFocused(false)}
-              placeholder="To-do…"
-              disabled={blocked || picking}
-              aria-label="Dump a to-do"
-            />
-          </form>
+        <div className={`dock-bar${picking || focused ? ' is-focus-dock' : ''}`}>
+          {!(picking || focused) && (
+            <form className="dump" onSubmit={onDumpSubmit}>
+              <input
+                ref={dumpRef}
+                type="text"
+                enterKeyHint="done"
+                autoComplete="off"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onPaste={onDumpPaste}
+                onFocus={() => setDumpFocused(true)}
+                onBlur={() => setDumpFocused(false)}
+                placeholder="To-do…"
+                disabled={blocked}
+                aria-label="Dump a to-do"
+              />
+            </form>
+          )}
           {status === 'ready' && (
             <div className="dock-actions">
               {picking && focusCount > 0 && (

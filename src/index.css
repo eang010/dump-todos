@@ -152,6 +152,10 @@ main {
   pointer-events: auto;
 }
 
+.dock-bar.is-focus-dock {
+  justify-content: center;
+}
+
 .dock-actions {
   display: flex;
   align-items: center;
