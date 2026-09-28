@@ -585,7 +585,7 @@ export default function App() {
               )}
               <button
                 type="button"
-                className={`dock-action${primaryDockAction === 'start' ? ' is-armed' : ''}`}
+                className={`dock-action${primaryDockAction === 'start' || primaryDockAction === 'exit' ? ' is-armed' : ''}`}
                 onClick={onDockFocusAction}
                 aria-label={
                   primaryDockAction === 'exit'
