@@ -639,7 +639,7 @@ export default function App() {
               )}
               <button
                 type="button"
-                className={`dock-action${primaryDockAction === 'start' || primaryDockAction === 'exit' ? ' is-armed' : ''}`}
+                className={`dock-action is-focus${primaryDockAction === 'start' || primaryDockAction === 'exit' ? ' is-armed' : ''}`}
                 onClick={onDockFocusAction}
                 aria-label={
                   primaryDockAction === 'exit'

@@ -252,10 +252,17 @@ main {
   background: color-mix(in srgb, white 38%, var(--paper) 18%);
 }
 
+.dock-action.is-focus,
 .dock-action.is-armed {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
+}
+
+.dock-action.is-focus:hover,
+.dock-action.is-armed:hover {
+  background: color-mix(in srgb, var(--ink) 86%, white);
+  border-color: color-mix(in srgb, var(--ink) 86%, white);
 }
 
 .dock-action:active {
