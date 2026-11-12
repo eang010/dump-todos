@@ -49,6 +49,41 @@ npm run dev
 
 Needs `.env` with `NOTION_TOKEN` and `NOTION_DATABASE_ID`. Open the URL Vite prints.
 
+## Mac app
+
+Build a copy you can keep in Applications.
+
+```sh
+npm install
+npm run dist:mac
+```
+
+The app is `To Do.app` inside `release/`. Drag it into Applications.
+
+It is unsigned. The first time, right-click the app and choose Open.
+
+The installed app does not read the project `.env`. Copy that file to:
+
+```sh
+~/Library/Application Support/To Do/.env
+```
+
+Create the `To Do` folder if it is not there yet.
+
+Pushing to GitHub updates the website. This app updates when you run `npm run dist:mac` again and replace the copy in Applications.
+
+## Menu bar
+
+Open the app. A checkbox icon stays in the menu bar. Click it and the list drops down. Click the icon again, or click outside the panel, and it closes. Right-click the icon for Open at Login and Quit. It does not show in the Dock.
+
+To try the menu bar from this folder without building the app:
+
+```sh
+npm run dev:mac
+```
+
+Quit it from the icon before you start it again. That command reads the project `.env`.
+
 ## Deploy
 
 Push to GitHub, then import the repo in Vercel. Set the same two env vars in the Vercel project.

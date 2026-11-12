@@ -3,10 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "dev:app": "vercel dev",
+    "dev:mac": "electron .",
     "build": "vite build",
+    "dist:mac": "vite build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac",
     "lint": "oxlint",
     "test": "node --test src/classify.test.js src/move.test.js src/forest.test.js",
     "preview": "vite preview"
@@ -19,7 +22,40 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "electron": "^35.7.5",
+    "electron-builder": "^26.0.12",
     "oxlint": "^1.79.0",
     "vite": "^8.2.2"
+  },
+  "build": {
+    "appId": "app.todo.list",
+    "productName": "To Do",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "lib/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/iconTemplate.png",
+        "to": "iconTemplate.png"
+      },
+      {
+        "from": "electron/iconTemplate@2x.png",
+        "to": "iconTemplate@2x.png"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "target": ["dir"],
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    }
   }
 }
