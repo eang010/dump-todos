@@ -20,7 +20,11 @@ One box. You dump. It sorts into Work, Personal, Ideas, or Inbox. Drag a row ont
 
 If your head is also full all the time, maybe this is a small thing you can do to quiet it down. Just a little.
 
-## Notion setup
+---
+
+## 1. Setup
+
+Notion is the setup. The website and the Mac app both read this same database.
 
 1. Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations). Copy the token.
 2. Create a **full-page database** with these properties (names must match):
@@ -40,16 +44,26 @@ cp .env.example .env
 
 Put the token and database id in `.env`.
 
-## Run locally
+---
+
+## 2. Ways to run it
+
+### 2.1. Website
+
+Push to GitHub, then import the repo in Vercel. Set `NOTION_TOKEN` and `NOTION_DATABASE_ID` on the Vercel project. Vercel gives you a URL. Later pushes update that site.
+
+To run the same site on this machine:
 
 ```sh
 npm install
 npm run dev
 ```
 
-Needs `.env` with `NOTION_TOKEN` and `NOTION_DATABASE_ID`. Open the URL Vite prints.
+Open the URL Vite prints. It reads the project `.env`.
 
-## Mac app
+---
+
+### 2.2. Mac app
 
 Build a copy you can keep in Applications.
 
@@ -62,28 +76,26 @@ The app is `To Do.app` inside `release/`. Drag it into Applications.
 
 It is unsigned. The first time, right-click the app and choose Open.
 
-The installed app does not read the project `.env`. Copy that file to:
+The installed app reads its own `.env`, in:
 
 ```sh
 ~/Library/Application Support/To Do/.env
 ```
 
-Create the `To Do` folder if it is not there yet.
+Create the `To Do` folder if it is not there yet. Copy the project `.env` into it.
 
-Pushing to GitHub updates the website. This app updates when you run `npm run dist:mac` again and replace the copy in Applications.
+This copy updates when you run `npm run dist:mac` again and replace the app in Applications. A GitHub push updates the website URL only.
 
-## Menu bar
+---
 
-Open the app. A checkbox icon stays in the menu bar. Click it and the list drops down. Click the icon again, or click outside the panel, and it closes. Right-click the icon for Open at Login and Quit. It does not show in the Dock.
+### 2.3. Menu bar
 
-To try the menu bar from this folder without building the app:
+Open the Mac app. A checkbox icon stays in the menu bar. Click it and the list drops down. Click the icon again, or click outside the panel, and it closes. Right-click the icon for Open at Login and Quit.
+
+To try the menu bar from this folder before you build the app:
 
 ```sh
 npm run dev:mac
 ```
 
 Quit it from the icon before you start it again. That command reads the project `.env`.
-
-## Deploy
-
-Push to GitHub, then import the repo in Vercel. Set the same two env vars in the Vercel project.
