@@ -29,7 +29,7 @@ Notion is the setup. The website and the Mac app both read this same database.
 1. Create an internal integration at [notion.so/my-integrations](https://www.notion.so/my-integrations). Copy the token.
 2. Create a **full-page database** with these properties (names must match):
    - **Name** — title
-   - **Section** — select options `Work`, `Personal`, `Ideas`, `Inbox`
+   - **Section** — select. These options are the categories. Start with `Work`, `Personal`, `Ideas`, `Inbox`, or name your own. Add, rename, or remove options in Notion and the app follows them the next time it refreshes.
    - **Done** — checkbox
    - **Order** — number
    - **Parent** — text (leave empty; the app fills it when you nest)

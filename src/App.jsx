@@ -16,18 +16,34 @@ import { destFromPoint } from './dnd.js'
 import { focusForest, forest } from './forest.js'
 import { moveItem } from './move.js'
 
-const SECTIONS = ['work', 'personal', 'ideas', 'inbox']
-const LABELS = {
-  work: 'Work',
-  personal: 'Personal',
-  ideas: 'Ideas',
-  inbox: 'Inbox',
+const DEFAULT_SECTIONS = ['Work', 'Personal', 'Ideas', 'Inbox']
+const NAMED_TONE = {
+  work: 'work',
+  personal: 'personal',
+  ideas: 'ideas',
+  inbox: 'inbox',
 }
-const SHORT = {
-  work: 'W',
-  personal: 'P',
-  ideas: 'I',
-  inbox: 'I',
+const EXTRA_TONES = ['a', 'b', 'c', 'd', 'e', 'f']
+
+function toneFor(name, index) {
+  return NAMED_TONE[String(name || '').toLowerCase()] || EXTRA_TONES[index % EXTRA_TONES.length]
+}
+
+function initial(name) {
+  const letter = String(name || '').trim().charAt(0)
+  return letter ? letter.toUpperCase() : '?'
+}
+
+function mergeSections(fromNotion, items) {
+  const names = fromNotion?.length ? [...fromNotion] : [...DEFAULT_SECTIONS]
+  const seen = new Set(names)
+  for (const item of items) {
+    if (item.section && !seen.has(item.section)) {
+      seen.add(item.section)
+      names.push(item.section)
+    }
+  }
+  return names
 }
 const WHENS = [
   { value: '', label: 'Anytime' },
@@ -69,7 +85,8 @@ export default function App() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [draft, setDraft] = useState('')
-  const [bucket, setBucket] = useState('inbox')
+  const [bucket, setBucket] = useState('Inbox')
+  const [sections, setSections] = useState(DEFAULT_SECTIONS)
   const [editingId, setEditingId] = useState(null)
   const [dragId, setDragId] = useState(null)
   const [over, setOver] = useState(null)
@@ -89,10 +106,18 @@ export default function App() {
     return new Set(itemsRef.current.map((item) => item.id))
   }
 
+  function applyList(data) {
+    const items = Array.isArray(data?.items) ? data.items : []
+    const names = mergeSections(data?.sections, items)
+    const fallback = names[0]
+    setSections(names)
+    setItems(items.map((item) => (item.section ? item : { ...item, section: fallback })))
+    setBucket((current) => (names.includes(current) ? current : fallback))
+  }
+
   async function refresh() {
     if (dirtyRef.current) return
-    const data = await fetchTodos()
-    setItems(data)
+    applyList(await fetchTodos())
     setStatus('ready')
     setError('')
   }
@@ -104,7 +129,7 @@ export default function App() {
     setError('')
     try {
       const data = await fetchTodos()
-      setItems(data)
+      applyList(data)
       setStatus('ready')
     } catch (err) {
       setConfiguring(true)
@@ -120,7 +145,7 @@ export default function App() {
     setError('')
     try {
       const data = await fetchTodos()
-      setItems(data)
+      applyList(data)
       setStatus('ready')
     } catch (err) {
       setStatus(err.code === 'missing_env' ? 'setup' : 'error')
@@ -133,7 +158,7 @@ export default function App() {
     fetchTodos()
       .then((data) => {
         if (cancelled) return
-        setItems(data)
+        applyList(data)
         setStatus('ready')
       })
       .catch((err) => {
@@ -384,7 +409,7 @@ export default function App() {
 
   const picking = focusMode === 'picking'
   const focused = focusMode === 'active'
-  const open = SECTIONS.map((section) => ({
+  const open = sections.map((section) => ({
     section,
     nodes: forest(items, section, false),
   }))
@@ -491,6 +516,7 @@ export default function App() {
                         <Block
                           key={node.id}
                           node={node}
+                          sections={sections}
                           editingId={editingId}
                           onEdit={setEditingId}
                           onPatch={patch}
@@ -514,9 +540,10 @@ export default function App() {
             key={section}
             className={`bucket${over?.type === 'section' && over.section === section ? ' drop-section' : ''}`}
             data-section={section}
+            data-tone={toneFor(section, sections.indexOf(section))}
           >
             <header data-drop-section={section}>
-              <h2>{LABELS[section]}</h2>
+              <h2>{section}</h2>
               <span>{nodes.length}</span>
             </header>
             {nodes.length === 0 ? (
@@ -533,6 +560,7 @@ export default function App() {
                         <Block
                           key={node.id}
                           node={node}
+                          sections={sections}
                           editingId={editingId}
                           onEdit={setEditingId}
                           onPatch={patch}
@@ -568,6 +596,7 @@ export default function App() {
                     <Block
                       key={node.id}
                       node={node}
+                      sections={sections}
                       editingId={editingId}
                       onEdit={setEditingId}
                       onPatch={patch}
@@ -598,6 +627,7 @@ export default function App() {
             <form className="dump" onSubmit={onDumpSubmit}>
               <SectionPicker
                 value={bucket}
+                sections={sections}
                 onChange={(section) => {
                   setBucket(section)
                   dumpRef.current?.focus()
@@ -757,7 +787,7 @@ function Setup({ initial, onSave, onForget, onCancel }) {
         </li>
         <li>
           Make a full-page database with <strong>Name</strong> (title),{' '}
-          <strong>Section</strong> (select: Work, Personal, Ideas, Inbox),{' '}
+          <strong>Section</strong> (select; these options are the categories, and the app follows whatever you set in Notion),{' '}
           <strong>Done</strong> (checkbox), <strong>Order</strong> (number),{' '}
           <strong>Parent</strong> (text), <strong>When</strong> (select: Today,
           Tomorrow, This week, Later), <strong>Focus</strong> (checkbox; the app
@@ -808,10 +838,10 @@ function Setup({ initial, onSave, onForget, onCancel }) {
 }
 
 const SKELETON_ROWS = {
-  work: [72, 54, 64],
-  personal: [68, 48],
-  ideas: [60, 76, 52],
-  inbox: [58, 70],
+  Work: [72, 54, 64],
+  Personal: [68, 48],
+  Ideas: [60, 76, 52],
+  Inbox: [58, 70],
 }
 
 function SkeletonRow({ width }) {
@@ -831,10 +861,10 @@ function SkeletonRow({ width }) {
 function SkeletonMain() {
   return (
     <main aria-busy="true" aria-label="Loading to-dos">
-      {SECTIONS.map((section) => (
-        <section key={section} className="bucket" data-section={section}>
+      {DEFAULT_SECTIONS.map((section, index) => (
+        <section key={section} className="bucket" data-section={section} data-tone={toneFor(section, index)}>
           <header>
-            <h2>{LABELS[section]}</h2>
+            <h2>{section}</h2>
             <span className="skeleton-bone skeleton-count" aria-hidden="true" />
           </header>
           <ul>
@@ -856,6 +886,7 @@ function SkeletonMain() {
 
 function Block({
   node,
+  sections,
   editingId,
   onEdit,
   onPatch,
@@ -868,9 +899,10 @@ function Block({
     <li
       className={`block${dnd.dragId === node.id ? ' dragging' : ''}${picking && node.focus ? ' is-focus-pick' : ''}`}
     >
-      <Row
-        item={node}
-        child={false}
+        <Row
+          item={node}
+          sections={sections}
+          child={false}
         editing={editingId === node.id}
         progress={
           node.children.length
@@ -891,6 +923,7 @@ function Block({
             <li key={child.id}>
               <Row
                 item={child}
+                sections={sections}
                 child
                 editing={editingId === child.id}
                 progress={null}
@@ -911,6 +944,7 @@ function Block({
 
 function Row({
   item,
+  sections,
   child,
   editing,
   progress,
@@ -969,6 +1003,7 @@ function Row({
       {!child && !picking && (
         <SectionPicker
           value={item.section}
+          sections={sections}
           onChange={(section) => onPatch(item.id, { section })}
         />
       )}
@@ -1047,9 +1082,10 @@ function Row({
   )
 }
 
-function SectionPicker({ value, onChange, up = false, dock = false }) {
+function SectionPicker({ value, sections = DEFAULT_SECTIONS, onChange, up = false, dock = false }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
+  const tone = toneFor(value, sections.indexOf(value))
 
   useEffect(() => {
     if (!open) return
@@ -1072,16 +1108,17 @@ function SectionPicker({ value, onChange, up = false, dock = false }) {
       ref={rootRef}
       className={`section-pick${open ? ' is-open' : ''}`}
       data-section={value || undefined}
+      data-tone={tone}
     >
       <button
         type="button"
         className={dock ? 'dump-section' : 'section-glyph'}
-        aria-label={dock ? `Bucket: ${LABELS[value]}` : `Section: ${LABELS[value] || value}`}
+        aria-label={dock ? `Bucket: ${value}` : `Section: ${value}`}
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((v) => !v)}
       >
-        {SHORT[value] || '?'}
+        {initial(value)}
       </button>
       {open && (
         <ul
@@ -1089,7 +1126,7 @@ function SectionPicker({ value, onChange, up = false, dock = false }) {
           role="listbox"
           aria-label={dock ? 'Choose a bucket' : 'Move to section'}
         >
-          {SECTIONS.map((section) => (
+          {sections.map((section, index) => (
             <li key={section}>
               <button
                 type="button"
@@ -1097,12 +1134,13 @@ function SectionPicker({ value, onChange, up = false, dock = false }) {
                 aria-selected={section === value}
                 className={`section-option${section === value ? ' is-selected' : ''}`}
                 data-section={section}
+                data-tone={toneFor(section, index)}
                 onClick={() => {
                   onChange(section)
                   setOpen(false)
                 }}
               >
-                {LABELS[section]}
+                {section}
               </button>
             </li>
           ))}

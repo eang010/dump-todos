@@ -1,4 +1,4 @@
-import { createItem, handle, listItems, readBody, requestCreds, send } from '../lib/notion.js'
+import { createItem, handle, listItems, listSections, readBody, requestCreds, send } from '../lib/notion.js'
 
 export default async function handler(req, res) {
   await handle(res, async () => {
@@ -8,7 +8,11 @@ export default async function handler(req, res) {
       return
     }
     if (req.method === 'GET') {
-      send(res, 200, await listItems(creds))
+      const [items, sections] = await Promise.all([
+        listItems(creds),
+        listSections(creds),
+      ])
+      send(res, 200, { items, sections })
       return
     }
     if (req.method === 'POST') {

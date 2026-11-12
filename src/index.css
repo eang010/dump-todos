@@ -8,6 +8,12 @@
   --personal: #9a4f3c;
   --ideas: #3f8a36;
   --inbox: #6e675e;
+  --tone-a: #6b5b7a;
+  --tone-b: #3d6b6a;
+  --tone-c: #8a6a32;
+  --tone-d: #8a4f6a;
+  --tone-e: #4f5f8a;
+  --tone-f: #6a5a45;
   --sans: "Söhne", "SF Pro Text", system-ui, sans-serif;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
 }
@@ -209,21 +215,21 @@ main {
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
 
-.section-pick[data-section='work'] .dump-section {
-  color: var(--work);
-  background: color-mix(in srgb, var(--work) 14%, transparent);
-}
-.section-pick[data-section='personal'] .dump-section {
-  color: var(--personal);
-  background: color-mix(in srgb, var(--personal) 14%, transparent);
-}
-.section-pick[data-section='ideas'] .dump-section {
-  color: var(--ideas);
-  background: color-mix(in srgb, var(--ideas) 14%, transparent);
-}
-.section-pick[data-section='inbox'] .dump-section {
-  color: var(--inbox);
-  background: color-mix(in srgb, var(--inbox) 14%, transparent);
+[data-tone='work'] { --tone: var(--work); }
+[data-tone='personal'] { --tone: var(--personal); }
+[data-tone='ideas'] { --tone: var(--ideas); }
+[data-tone='inbox'] { --tone: var(--inbox); }
+[data-tone='a'] { --tone: var(--tone-a); }
+[data-tone='b'] { --tone: var(--tone-b); }
+[data-tone='c'] { --tone: var(--tone-c); }
+[data-tone='d'] { --tone: var(--tone-d); }
+[data-tone='e'] { --tone: var(--tone-e); }
+[data-tone='f'] { --tone: var(--tone-f); }
+
+.section-pick[data-tone] .dump-section,
+.section-pick[data-tone] .section-glyph {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
 }
 
 .dump input {
@@ -341,14 +347,8 @@ kbd {
   color: var(--mute);
 }
 
-.bucket[data-section='work'] h2 {
-  color: var(--work);
-}
-.bucket[data-section='personal'] h2 {
-  color: var(--personal);
-}
-.bucket[data-section='ideas'] h2 {
-  color: var(--ideas);
+.bucket[data-tone] h2 {
+  color: var(--tone);
 }
 
 .bucket header span,
@@ -580,19 +580,6 @@ body:has(.dragging) {
   transform: scale(1.06);
 }
 
-.section-pick[data-section='work'] .section-glyph {
-  color: var(--work);
-  background: color-mix(in srgb, var(--work) 14%, transparent);
-}
-.section-pick[data-section='personal'] .section-glyph {
-  color: var(--personal);
-  background: color-mix(in srgb, var(--personal) 14%, transparent);
-}
-.section-pick[data-section='ideas'] .section-glyph {
-  color: var(--ideas);
-  background: color-mix(in srgb, var(--ideas) 14%, transparent);
-}
-
 .section-menu.is-up {
   top: auto;
   bottom: calc(100% + 0.4rem);
@@ -648,21 +635,9 @@ body:has(.dragging) {
   font-weight: 650;
 }
 
-.section-option[data-section='work'].is-selected {
-  color: var(--work);
-  background: color-mix(in srgb, var(--work) 12%, transparent);
-}
-.section-option[data-section='personal'].is-selected {
-  color: var(--personal);
-  background: color-mix(in srgb, var(--personal) 12%, transparent);
-}
-.section-option[data-section='ideas'].is-selected {
-  color: var(--ideas);
-  background: color-mix(in srgb, var(--ideas) 12%, transparent);
-}
-.section-option[data-section='inbox'].is-selected {
-  color: var(--inbox);
-  background: color-mix(in srgb, var(--inbox) 12%, transparent);
+.section-option[data-tone].is-selected {
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
