@@ -4,9 +4,12 @@ import {
   createTodo,
   deleteTodo,
   fetchTodos,
+  forgetKeys,
   isPersisted,
+  loadKeys,
   persistDiff,
   enqueueWrite,
+  saveKeys,
 } from './api.js'
 import { parseDump } from './classify.js'
 import { destFromPoint } from './dnd.js'
@@ -72,6 +75,7 @@ export default function App() {
   const [over, setOver] = useState(null)
   /** null | 'picking' | 'active' */
   const [focusMode, setFocusMode] = useState(null)
+  const [configuring, setConfiguring] = useState(false)
   const dumpRef = useRef(null)
   const doneRef = useRef(null)
   const dirtyRef = useRef(false)
@@ -91,6 +95,37 @@ export default function App() {
     setItems(data)
     setStatus('ready')
     setError('')
+  }
+
+  async function connect(token, databaseId) {
+    saveKeys(token, databaseId)
+    setConfiguring(false)
+    setStatus('loading')
+    setError('')
+    try {
+      const data = await fetchTodos()
+      setItems(data)
+      setStatus('ready')
+    } catch (err) {
+      setConfiguring(true)
+      setStatus(err.code === 'missing_env' ? 'setup' : 'error')
+      setError(err.message)
+    }
+  }
+
+  async function forgetNotion() {
+    forgetKeys()
+    setConfiguring(false)
+    setStatus('loading')
+    setError('')
+    try {
+      const data = await fetchTodos()
+      setItems(data)
+      setStatus('ready')
+    } catch (err) {
+      setStatus(err.code === 'missing_env' ? 'setup' : 'error')
+      setError(err.message)
+    }
   }
 
   useEffect(() => {
@@ -358,7 +393,8 @@ export default function App() {
   const focusCount = items.filter(
     (item) => !item.parentId && !item.done && item.focus,
   ).length
-  const blocked = status !== 'ready'
+  const blocked = status !== 'ready' || configuring
+  const showList = status === 'ready' && !configuring
 
   function onDockFocusAction() {
     if (focused) {
@@ -386,26 +422,37 @@ export default function App() {
       <header className="top">
         <div className="top-row">
           <h1>{focused ? 'Focus' : 'To Do List'}</h1>
-          {picking && focusCount > 0 ? (
-            <button
-              type="button"
-              className="clear-focus"
-              onClick={clearFocusSelection}
-            >
-              Clear all
-            </button>
-          ) : (
-            !picking &&
-            items.some((item) => item.when) && (
+          <div className="top-actions">
+            {picking && focusCount > 0 ? (
               <button
                 type="button"
                 className="clear-focus"
-                onClick={resetPriorities}
+                onClick={clearFocusSelection}
               >
-                Reset
+                Clear all
               </button>
-            )
-          )}
+            ) : (
+              !picking &&
+              items.some((item) => item.when) && (
+                <button
+                  type="button"
+                  className="clear-focus"
+                  onClick={resetPriorities}
+                >
+                  Reset
+                </button>
+              )
+            )}
+            {!picking && status !== 'loading' && status !== 'setup' && !configuring && (
+              <button
+                type="button"
+                className="clear-focus"
+                onClick={() => setConfiguring(true)}
+              >
+                Notion
+              </button>
+            )}
+          </div>
         </div>
         {picking && (
           <p className="hint">Tap root tasks to focus on. Nested tasks come along.</p>
@@ -413,7 +460,14 @@ export default function App() {
         {focused && focusNodes.length === 0 && (
           <p className="hint">Nothing left in focus. Tap Change to pick again.</p>
         )}
-        {status === 'setup' && <Setup />}
+        {(status === 'setup' || configuring) && (
+          <Setup
+            initial={loadKeys()}
+            onSave={connect}
+            onForget={loadKeys() ? forgetNotion : null}
+            onCancel={status === 'ready' ? () => setConfiguring(false) : null}
+          />
+        )}
         {status === 'error' && (
           <p className="banner">{error || 'Could not reach Notion.'}</p>
         )}
@@ -422,7 +476,7 @@ export default function App() {
 
       {status === 'loading' && <SkeletonMain />}
 
-      {status === 'ready' && focused && (
+      {showList && focused && (
         <main>
           <section className="bucket focus-bucket">
             {focusNodes.length === 0 ? (
@@ -453,7 +507,7 @@ export default function App() {
         </main>
       )}
 
-      {status === 'ready' && !focused && (
+      {showList && !focused && (
         <main>
         {open.map(({ section, nodes }) => (
           <section
@@ -531,7 +585,7 @@ export default function App() {
         )}
         </main>
       )}
-      <footer className="dock">
+      {showList && <footer className="dock">
         {dumpFocused && !picking && !focused && (
           <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
         )}
@@ -602,7 +656,7 @@ export default function App() {
             </div>
           )}
         </div>
-      </footer>
+      </footer>}
     </div>
   )
 }
@@ -677,10 +731,19 @@ function DockIcon({ kind }) {
   )
 }
 
-function Setup() {
+function Setup({ initial, onSave, onForget, onCancel }) {
+  const [token, setToken] = useState(initial?.token || '')
+  const [databaseId, setDatabaseId] = useState(initial?.databaseId || '')
+
+  function submit(e) {
+    e.preventDefault()
+    if (!token.trim() || !databaseId.trim()) return
+    onSave(token.trim(), databaseId.trim())
+  }
+
   return (
     <div className="setup">
-      <p>Connect a Notion database, then reload.</p>
+      <p>Connect your Notion database. These stay in this browser.</p>
       <ol>
         <li>
           Create an internal integration at{' '}
@@ -697,11 +760,45 @@ function Setup() {
           can add this).
         </li>
         <li>Share the database with the integration.</li>
-        <li>
-          Set <code>NOTION_TOKEN</code> and <code>NOTION_DATABASE_ID</code> in
-          Vercel env (or <code>.env</code> for <code>npx vercel dev</code>).
-        </li>
       </ol>
+      <form className="setup-form" onSubmit={submit}>
+        <label>
+          Integration token
+          <input
+            type="password"
+            name="notion-token"
+            autoComplete="off"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Database id
+          <input
+            type="text"
+            name="notion-database"
+            autoComplete="off"
+            spellCheck="false"
+            value={databaseId}
+            onChange={(e) => setDatabaseId(e.target.value)}
+            required
+          />
+        </label>
+        <div className="setup-actions">
+          <button type="submit">Save</button>
+          {onForget && (
+            <button type="button" onClick={onForget}>
+              Forget
+            </button>
+          )}
+          {onCancel && (
+            <button type="button" onClick={onCancel}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
     </div>
   )
 }

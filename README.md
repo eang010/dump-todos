@@ -50,7 +50,9 @@ Put the token and database id in `.env`.
 
 ### 2.1. Website
 
-Push to GitHub, then import the repo in Vercel. Set `NOTION_TOKEN` and `NOTION_DATABASE_ID` on the Vercel project. Vercel gives you a URL. Later pushes update that site.
+Push to GitHub, then import the repo in Vercel. Vercel gives you a URL. Later pushes update that site.
+
+The page asks each person for their own integration token and database id. Those stay in that browser and are not shared with anyone else who opens the URL. A different browser, or clearing the site data, asks again. Remove `NOTION_TOKEN` and `NOTION_DATABASE_ID` from the Vercel project so the site does not keep one shared list.
 
 To run the same site on this machine:
 

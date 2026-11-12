@@ -59,6 +59,12 @@ select {
   gap: 1rem;
 }
 
+.top-actions {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
 .top-row h1 {
   margin-bottom: 0;
 }
@@ -717,6 +723,46 @@ body:has(.dragging) {
 
 .setup code {
   font-size: 0.85em;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.setup-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--mute);
+  font-size: 0.8rem;
+}
+
+.setup-form input {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.setup-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.setup-actions button {
+  border: 0;
+  background: none;
+  padding: 0.15rem 0;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.setup-actions button[type='button'] {
+  color: var(--mute);
 }
 
 @media (max-width: 420px) {

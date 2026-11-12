@@ -1,3 +1,33 @@
+const TOKEN_KEY = 'notionToken'
+const DATABASE_KEY = 'notionDatabaseId'
+
+export function loadKeys() {
+  const token = localStorage.getItem(TOKEN_KEY)?.trim() || ''
+  const databaseId = localStorage.getItem(DATABASE_KEY)?.trim() || ''
+  if (!token || !databaseId) return null
+  return { token, databaseId }
+}
+
+export function saveKeys(token, databaseId) {
+  localStorage.setItem(TOKEN_KEY, token.trim())
+  localStorage.setItem(DATABASE_KEY, databaseId.trim())
+}
+
+export function forgetKeys() {
+  localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(DATABASE_KEY)
+}
+
+function notionHeaders(extra = {}) {
+  const keys = loadKeys()
+  const headers = { ...extra }
+  if (keys) {
+    headers['X-Notion-Token'] = keys.token
+    headers['X-Notion-Database-Id'] = keys.databaseId
+  }
+  return headers
+}
+
 export function isPersisted(id) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     id,
@@ -16,7 +46,7 @@ async function json(res) {
 }
 
 export async function fetchTodos() {
-  const res = await fetch('/api/todos')
+  const res = await fetch('/api/todos', { headers: notionHeaders() })
   const data = await json(res)
   if (!res.ok) {
     const err = new Error(data?.error || res.statusText)
@@ -30,7 +60,7 @@ export async function fetchTodos() {
 export async function createTodo(item) {
   const res = await fetch('/api/todos', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: notionHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(item),
   })
   const data = await json(res)
@@ -41,7 +71,7 @@ export async function createTodo(item) {
 export async function updateTodo(item) {
   const res = await fetch(`/api/todos/${item.id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: notionHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(item),
   })
   const data = await json(res)
@@ -50,7 +80,10 @@ export async function updateTodo(item) {
 }
 
 export async function deleteTodo(id) {
-  const res = await fetch(`/api/todos/${id}`, { method: 'DELETE' })
+  const res = await fetch(`/api/todos/${id}`, {
+    method: 'DELETE',
+    headers: notionHeaders(),
+  })
   if (!res.ok && res.status !== 204) {
     const data = await json(res)
     throw new Error(data?.error || res.statusText)
@@ -58,7 +91,10 @@ export async function deleteTodo(id) {
 }
 
 export async function clearDoneRemote() {
-  const res = await fetch('/api/clear-done', { method: 'POST' })
+  const res = await fetch('/api/clear-done', {
+    method: 'POST',
+    headers: notionHeaders(),
+  })
   const data = await json(res)
   if (!res.ok) throw new Error(data?.error || res.statusText)
 }
