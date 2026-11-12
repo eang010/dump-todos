@@ -6,7 +6,7 @@
   --lift: #faf7f1;
   --work: #3d5a6c;
   --personal: #9a4f3c;
-  --ideas: #5c6b3f;
+  --ideas: #3f8a36;
   --inbox: #6e675e;
   --sans: "Söhne", "SF Pro Text", system-ui, sans-serif;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
@@ -187,10 +187,49 @@ main {
 .dump {
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dump-section {
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--mute);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.section-pick[data-section='work'] .dump-section {
+  color: var(--work);
+  background: color-mix(in srgb, var(--work) 14%, transparent);
+}
+.section-pick[data-section='personal'] .dump-section {
+  color: var(--personal);
+  background: color-mix(in srgb, var(--personal) 14%, transparent);
+}
+.section-pick[data-section='ideas'] .dump-section {
+  color: var(--ideas);
+  background: color-mix(in srgb, var(--ideas) 14%, transparent);
+}
+.section-pick[data-section='inbox'] .dump-section {
+  color: var(--inbox);
+  background: color-mix(in srgb, var(--inbox) 14%, transparent);
 }
 
 .dump input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  width: auto;
   height: 3rem;
   padding: 0.75rem 1.25rem;
   border: 1px solid color-mix(in srgb, white 55%, var(--ink) 8%);
@@ -552,6 +591,12 @@ body:has(.dragging) {
 .section-pick[data-section='ideas'] .section-glyph {
   color: var(--ideas);
   background: color-mix(in srgb, var(--ideas) 14%, transparent);
+}
+
+.section-menu.is-up {
+  top: auto;
+  bottom: calc(100% + 0.4rem);
+  transform-origin: bottom left;
 }
 
 .section-menu {

@@ -69,7 +69,7 @@ export default function App() {
   const [status, setStatus] = useState('loading')
   const [error, setError] = useState('')
   const [draft, setDraft] = useState('')
-  const [dumpFocused, setDumpFocused] = useState(false)
+  const [bucket, setBucket] = useState('inbox')
   const [editingId, setEditingId] = useState(null)
   const [dragId, setDragId] = useState(null)
   const [over, setOver] = useState(null)
@@ -155,7 +155,7 @@ export default function App() {
   }, [])
 
   function dump(text) {
-    const parsed = parseDump(text)
+    const parsed = parseDump(text).map((row) => ({ ...row, section: bucket }))
     if (!parsed.length) return
     const now = Date.now()
     dirtyRef.current = true
@@ -586,9 +586,6 @@ export default function App() {
         </main>
       )}
       {showList && <footer className="dock">
-        {dumpFocused && !picking && !focused && (
-          <p className="dump-tip">Prefix w: p: i: to force a bucket</p>
-        )}
         {picking && (
           <p className="dump-tip">
             {focusCount
@@ -599,6 +596,15 @@ export default function App() {
         <div className={`dock-bar${picking || focused ? ' is-focus-dock' : ''}`}>
           {!(picking || focused) && (
             <form className="dump" onSubmit={onDumpSubmit}>
+              <SectionPicker
+                value={bucket}
+                onChange={(section) => {
+                  setBucket(section)
+                  dumpRef.current?.focus()
+                }}
+                up
+                dock
+              />
               <input
                 ref={dumpRef}
                 type="text"
@@ -607,8 +613,6 @@ export default function App() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onPaste={onDumpPaste}
-                onFocus={() => setDumpFocused(true)}
-                onBlur={() => setDumpFocused(false)}
                 placeholder="To-do…"
                 disabled={blocked}
                 aria-label="Dump a to-do"
@@ -1043,7 +1047,7 @@ function Row({
   )
 }
 
-function SectionPicker({ value, onChange }) {
+function SectionPicker({ value, onChange, up = false, dock = false }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -1067,12 +1071,12 @@ function SectionPicker({ value, onChange }) {
     <div
       ref={rootRef}
       className={`section-pick${open ? ' is-open' : ''}`}
-      data-section={value}
+      data-section={value || undefined}
     >
       <button
         type="button"
-        className="section-glyph"
-        aria-label={`Section: ${LABELS[value] || value}`}
+        className={dock ? 'dump-section' : 'section-glyph'}
+        aria-label={dock ? `Bucket: ${LABELS[value]}` : `Section: ${LABELS[value] || value}`}
         aria-expanded={open}
         aria-haspopup="listbox"
         onClick={() => setOpen((v) => !v)}
@@ -1080,7 +1084,11 @@ function SectionPicker({ value, onChange }) {
         {SHORT[value] || '?'}
       </button>
       {open && (
-        <ul className="section-menu" role="listbox" aria-label="Move to section">
+        <ul
+          className={`section-menu${up ? ' is-up' : ''}`}
+          role="listbox"
+          aria-label={dock ? 'Choose a bucket' : 'Move to section'}
+        >
           {SECTIONS.map((section) => (
             <li key={section}>
               <button
