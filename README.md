@@ -88,7 +88,7 @@ This copy updates when you run `npm run dist:mac` again and replace the app in A
 
 ### 2.3. Menu bar
 
-Open the Mac app. A checkbox icon stays in the menu bar. Click it and the list drops down. Click the icon again, or click outside the panel, and it closes. Right-click the icon for Open at Login and Quit.
+Open the Mac app. A list icon stays in the menu bar. Click it and the list drops down. Click the icon again, or click outside the panel, and it closes. Right-click the icon for Open at Login and Quit.
 
 To try the menu bar from this folder before you build the app:
 
